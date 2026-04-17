@@ -1,0 +1,235 @@
+name: Nightly Coverage Showdown
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # 2am UTC daily
+  workflow_dispatch:       # allow manual trigger
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. Resolve versions and decide whether anything has changed
+  # ---------------------------------------------------------------------------
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      changed:       ${{ steps.version_check.outputs.changed }}
+      coverlet_ver:  ${{ steps.versions.outputs.coverlet_ver }}
+      mtp_ver:       ${{ steps.versions.outputs.mtp_ver }}
+      humanizer_sha: ${{ steps.clone.outputs.humanizer_sha }}
+
+    steps:
+      - name: Checkout showdown repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Clone Humanizer (main)
+        id: clone
+        run: |
+          git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer
+          echo "humanizer_sha=$(git -C humanizer rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Resolve latest package versions
+        id: versions
+        run: |
+          COVERLET_VER=$(curl -s "https://api.nuget.org/v3-flatcontainer/coverlet.mtp/index.json" \
+            | grep -oP '"versions":\s*\[.*?\]' \
+            | grep -oP '"[0-9]+\.[0-9]+\.[0-9]+"' \
+            | tail -1 \
+            | tr -d '"')
+          MTP_VER=$(curl -s "https://api.nuget.org/v3-flatcontainer/microsoft.testing.extensions.codecoverage/index.json" \
+            | grep -oP '"versions":\s*\[.*?\]' \
+            | grep -oP '"[0-9]+\.[0-9]+\.[0-9]+"' \
+            | tail -1 \
+            | tr -d '"')
+
+          echo "coverlet_ver=${COVERLET_VER}" >> $GITHUB_OUTPUT
+          echo "mtp_ver=${MTP_VER}"           >> $GITHUB_OUTPUT
+          echo "Coverlet => ${COVERLET_VER}"
+          echo "Microsoft.Testing.Extensions.CodeCoverage => ${MTP_VER}"
+
+      - name: Check for version changes
+        id: version_check
+        run: |
+          VERSIONS_FILE="versions.json"
+          FORCE="${{ github.event_name == 'workflow_dispatch' }}"
+          COVERLET_VER="${{ steps.versions.outputs.coverlet_ver }}"
+          MTP_VER="${{ steps.versions.outputs.mtp_ver }}"
+
+          if [ ! -f "$VERSIONS_FILE" ]; then
+            echo "No versions.json found - first run"
+            echo "changed=true" >> $GITHUB_OUTPUT
+          elif [ "$FORCE" = "true" ]; then
+            echo "Manual trigger - forcing run"
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            PREV_COVERLET=$(jq -r '.coverlet_mtp    // ""' "$VERSIONS_FILE")
+            PREV_MTP=$(jq -r '.mtp_codecoverage        // ""' "$VERSIONS_FILE")
+            if [ "$PREV_COVERLET" != "$COVERLET_VER" ] || [ "$PREV_MTP" != "$MTP_VER" ]; then
+              echo "Version change detected"
+              echo "changed=true" >> $GITHUB_OUTPUT
+            else
+              echo "No version change - skipping heavy work"
+              echo "changed=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+  # ---------------------------------------------------------------------------
+  # 2a. Run Coverlet coverage (parallel)
+  # ---------------------------------------------------------------------------
+  run-coverlet:
+    needs: prepare
+    if: needs.prepare.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout showdown repo
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Clone Humanizer (main)
+        run: |
+          git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer
+
+      - name: Run Coverlet coverage
+        run: |
+          mkdir -p results
+          chmod +x runners/coverlet.sh
+          bash runners/coverlet.sh \
+            humanizer \
+            "${{ needs.prepare.outputs.coverlet_ver }}" \
+            results/coverlet.cobertura.xml
+
+      - name: Upload Coverlet result
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverlet-result
+          path: results/coverlet.cobertura.xml
+
+  # ---------------------------------------------------------------------------
+  # 2b. Run MTP coverage (parallel)
+  # ---------------------------------------------------------------------------
+  run-mtp:
+    needs: prepare
+    if: needs.prepare.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout showdown repo
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Clone Humanizer (main)
+        run: |
+          git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer
+
+      - name: Run MTP coverage
+        run: |
+          mkdir -p results
+          chmod +x runners/mtp.sh
+          bash runners/mtp.sh \
+            humanizer \
+            "${{ needs.prepare.outputs.mtp_ver }}" \
+            results/mtp.cobertura.xml
+
+      - name: Upload MTP result
+        uses: actions/upload-artifact@v4
+        with:
+          name: mtp-result
+          path: results/mtp.cobertura.xml
+
+  # ---------------------------------------------------------------------------
+  # 3. Compare results, commit, and upload Pages artifact
+  # ---------------------------------------------------------------------------
+  compare:
+    needs: [prepare, run-coverlet, run-mtp]
+    if: needs.prepare.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout showdown repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET (via global.json)
+        uses: actions/setup-dotnet@v4
+
+      - name: Download Coverlet result
+        uses: actions/download-artifact@v4
+        with:
+          name: coverlet-result
+          path: results/
+
+      - name: Download MTP result
+        uses: actions/download-artifact@v4
+        with:
+          name: mtp-result
+          path: results/
+
+      - name: Compare results
+        run: |
+          mkdir -p docs/data
+          dotnet run \
+            --project src/CoverageCompare \
+            -- \
+            results/coverlet.cobertura.xml \
+            results/mtp.cobertura.xml \
+            docs/data/latest.json \
+            docs/data/history.json \
+            "${{ needs.prepare.outputs.coverlet_ver }}" \
+            "${{ needs.prepare.outputs.mtp_ver }}" \
+            "${{ needs.prepare.outputs.humanizer_sha }}"
+
+      - name: Update versions.json
+        run: |
+          jq -n \
+            --arg c "${{ needs.prepare.outputs.coverlet_ver }}" \
+            --arg m "${{ needs.prepare.outputs.mtp_ver }}" \
+            --arg d "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --arg s "${{ needs.prepare.outputs.humanizer_sha }}" \
+            '{coverlet_mtp: $c, mtp_codecoverage: $m, last_run: $d, humanizer_sha: $s}' \
+            > versions.json
+
+      - name: Commit and push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add versions.json docs/data/latest.json docs/data/history.json
+          git diff --cached --quiet || git commit -m \
+            "chore: nightly run - coverlet ${{ needs.prepare.outputs.coverlet_ver }} / mtp ${{ needs.prepare.outputs.mtp_ver }} / humanizer ${{ needs.prepare.outputs.humanizer_sha }}"
+          git push
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/
+
+  # ---------------------------------------------------------------------------
+  # 4. Deploy to GitHub Pages
+  # ---------------------------------------------------------------------------
+  deploy-pages:
+    needs: compare
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

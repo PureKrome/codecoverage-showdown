@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coverage Showdown - Coverlet vs MTP</title>
+  <style>
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --coverlet:  #58a6ff;
+      --mtp:       #3fb950;
+      --warn:      #d29922;
+      --radius:    8px;
+      --gap:       1.5rem;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    a { color: var(--coverlet); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    header {
+      max-width: 1100px;
+      margin: 0 auto var(--gap);
+    }
+    header h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+    header p   { color: var(--muted); }
+
+    .badges {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+    .badge {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.2rem 0.75rem;
+      font-size: 12px;
+      font-family: monospace;
+    }
+    .badge .dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    .dot-coverlet { background: var(--coverlet); }
+    .dot-mtp      { background: var(--mtp); }
+
+    main { max-width: 1100px; margin: 0 auto; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--gap);
+      margin-bottom: var(--gap);
+    }
+    @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+    }
+    .card h2 { font-size: 1rem; margin-bottom: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+
+    /* Big metric */
+    .metrics { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .metric label { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
+    .metric .val { font-size: 2rem; font-weight: 700; }
+    .metric.coverlet .val { color: var(--coverlet); }
+    .metric.mtp      .val { color: var(--mtp); }
+
+    /* Delta pill */
+    .delta {
+      display: inline-block;
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      font-weight: 600;
+    }
+    .delta.pos { background: rgba(63,185,80,.15); color: var(--mtp); }
+    .delta.neg { background: rgba(248,81,73,.15);  color: #f85149; }
+    .delta.neu { background: rgba(139,148,158,.1); color: var(--muted); }
+
+    /* Comparison table */
+    .section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: var(--gap) 0 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      color: var(--muted);
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 0.45rem 0.75rem;
+      border-bottom: 1px solid rgba(48,54,61,.5);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.02); }
+
+    .coverlet-col { color: var(--coverlet); font-family: monospace; }
+    .mtp-col      { color: var(--mtp);      font-family: monospace; }
+
+    /* History chart */
+    #history-chart {
+      width: 100%;
+      height: 220px;
+      margin-top: 0.5rem;
+    }
+
+    /* Loading / error */
+    .state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+    }
+
+    footer {
+      max-width: 1100px;
+      margin: 2rem auto 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .note {
+      background: rgba(210,153,34,.08);
+      border: 1px solid rgba(210,153,34,.3);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      margin-bottom: var(--gap);
+      font-size: 12px;
+      color: var(--warn);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Coverage Showdown</h1>
+  <p>
+    Coverlet vs Microsoft Testing Platform (MTP) code coverage -
+    running against <a href="https://github.com/Humanizr/Humanizer" target="_blank">Humanizr/Humanizer</a> main branch
+  </p>
+  <div class="badges" id="badges">
+    <span class="badge"><span class="dot dot-coverlet"></span>Coverlet loading...</span>
+    <span class="badge"><span class="dot dot-mtp"></span>MTP loading...</span>
+    <span class="badge" id="badge-run">Last run: loading...</span>
+    <span class="badge" id="badge-sha">Humanizer: loading...</span>
+  </div>
+</header>
+
+<main>
+  <div id="loading" class="state">Loading data...</div>
+  <div id="content" style="display:none">
+
+    <div class="note">
+      Both tools are configured to emit Cobertura XML from the same test run on the same
+      Humanizer commit. Differences in reported rates can reflect instrumentation strategy,
+      compiler-generated code handling, and what each tool decides to include or exclude by
+      default - not necessarily a bug in either tool.
+    </div>
+
+    <div class="grid-2">
+      <div class="card" id="card-coverlet">
+        <h2>Coverlet</h2>
+        <div class="metrics" id="metrics-coverlet"></div>
+      </div>
+      <div class="card" id="card-mtp">
+        <h2>Microsoft Testing Platform</h2>
+        <div class="metrics" id="metrics-mtp"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Head-to-head summary</h2>
+      <table id="summary-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Coverlet</th>
+            <th>MTP</th>
+            <th>Delta (MTP - Coverlet)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section-title" style="margin-top: 1.5rem;">Per-package breakdown</div>
+    <div class="note">
+      Coverlet instruments all assemblies visible to the test runner, including third-party
+      dependencies (Argon, Verify, DiffEngine, etc.). MTP only reports on the project under
+      test. Rows where MTP shows <code>-</code> are test dependencies that only Coverlet
+      picked up — they are not meaningful for comparison. The <strong>Humanizer</strong>
+      row is the only apples-to-apples comparison.
+    </div>
+    <div class="card">
+      <table id="pkg-table">
+        <thead>
+          <tr>
+            <th>Package</th>
+            <th>Coverlet Line</th>
+            <th>Coverlet Branch</th>
+            <th>MTP Line</th>
+            <th>MTP Branch</th>
+            <th>Line Delta</th>
+            <th>Branch Delta</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section-title">Coverage history (line rate)</div>
+    <div class="card">
+      <canvas id="history-chart"></canvas>
+    </div>
+
+  </div>
+  <div id="error" class="state" style="display:none">
+    Could not load <code>data/latest.json</code>. Has the first nightly run completed?
+  </div>
+</main>
+
+<footer>
+  <p>Source: <a href="https://github.com/coverlet-coverage/coverlet" target="_blank">Coverlet</a> |
+     <a href="https://learn.microsoft.com/en-us/dotnet/core/testing/microsoft-testing-platform-code-coverage" target="_blank">MTP Code Coverage</a> |
+     Data refreshed nightly via GitHub Actions.</p>
+</footer>
+
+<script>
+// Minimal chart - no external dependencies
+(async () => {
+  let data, historyData;
+  try {
+    const [latestResp, historyResp] = await Promise.all([
+      fetch('data/latest.json'),
+      fetch('data/history.json'),
+    ]);
+    if (!latestResp.ok) throw new Error(latestResp.statusText);
+    data = await latestResp.json();
+    historyData = historyResp.ok ? await historyResp.json() : { runs: [] };
+  } catch (e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display   = 'block';
+    return;
+  }
+
+  document.getElementById('loading').style.display  = 'none';
+  document.getElementById('content').style.display  = 'block';
+
+  const { latest, packageComparisons } = data;
+  const { coverlet, mtp } = latest;
+
+  // Badges
+  document.getElementById('badges').innerHTML = `
+    <span class="badge"><span class="dot dot-coverlet"></span>Coverlet ${coverlet.version}</span>
+    <span class="badge"><span class="dot dot-mtp"></span>MTP ${mtp.version}</span>
+    <span class="badge" id="badge-run">Last run: ${fmtDate(latest.runAt)}</span>
+    <span class="badge" id="badge-sha">Humanizer @ ${latest.humanizerSha}</span>
+  `;
+
+  // Metric cards
+  renderMetrics('metrics-coverlet', coverlet, 'coverlet');
+  renderMetrics('metrics-mtp',      mtp,      'mtp');
+
+  // Summary table
+  const summaryBody = document.querySelector('#summary-table tbody');
+  [
+    ['Line rate',   'lineRate'],
+    ['Branch rate', 'branchRate'],
+    ['Method rate', 'methodRate'],
+  ].forEach(([label, key]) => {
+    const cv = coverlet[key], mv = mtp[key];
+    const delta = mv - cv;
+    summaryBody.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td>${label}</td>
+        <td class="coverlet-col">${pct(cv)}</td>
+        <td class="mtp-col">${pct(mv)}</td>
+        <td>${deltaPill(delta)}</td>
+      </tr>`);
+  });
+
+  // Package table
+  const pkgBody = document.querySelector('#pkg-table tbody');
+  (packageComparisons ?? []).forEach(pkg => {
+    const lineDelta   = safeNum(pkg.mtpLine)   - safeNum(pkg.coverletLine);
+    const branchDelta = safeNum(pkg.mtpBranch) - safeNum(pkg.coverletBranch);
+    pkgBody.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td style="font-family:monospace;font-size:12px">${pkg.name}</td>
+        <td class="coverlet-col">${pctOrDash(pkg.coverletLine)}</td>
+        <td class="coverlet-col">${pctOrDash(pkg.coverletBranch)}</td>
+        <td class="mtp-col">${pctOrDash(pkg.mtpLine)}</td>
+        <td class="mtp-col">${pctOrDash(pkg.mtpBranch)}</td>
+        <td>${pkg.coverletLine != null && pkg.mtpLine   != null ? deltaPill(lineDelta)   : '-'}</td>
+        <td>${pkg.coverletBranch != null && pkg.mtpBranch != null ? deltaPill(branchDelta) : '-'}</td>
+      </tr>`);
+  });
+
+  // History chart
+  renderChart(historyData.runs ?? []);
+})();
+
+function renderMetrics(containerId, tool, kind) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = [
+    ['Line',   tool.lineRate],
+    ['Branch', tool.branchRate],
+    ['Method', tool.methodRate],
+  ].map(([label, val]) => `
+    <div class="metric ${kind}">
+      <label>${label}</label>
+      <span class="val">${pct(val)}</span>
+    </div>`).join('');
+}
+
+function pct(v) {
+  if (v == null) return '-';
+  return (v * 100).toFixed(1) + '%';
+}
+
+function pctOrDash(v) { return v == null ? '-' : pct(v); }
+
+function safeNum(v) { return v ?? 0; }
+
+function deltaPill(delta) {
+  const formatted = (delta >= 0 ? '+' : '') + (delta * 100).toFixed(2) + 'pp';
+  const cls = Math.abs(delta) < 0.0001 ? 'neu' : delta > 0 ? 'pos' : 'neg';
+  return `<span class="delta ${cls}">${formatted}</span>`;
+}
+
+function fmtDate(iso) {
+  try {
+    return new Date(iso).toLocaleString('en-AU', {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', timeZone: 'UTC', timeZoneName: 'short'
+    });
+  } catch { return iso; }
+}
+
+function renderChart(history) {
+  const canvas = document.getElementById('history-chart');
+  const ctx    = canvas.getContext('2d');
+
+  // Reverse so oldest is left
+  const entries = [...history].reverse();
+  if (entries.length < 2) {
+    ctx.fillStyle = '#8b949e';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Not enough history yet - check back after more nightly runs', canvas.width / 2, 110);
+    return;
+  }
+
+  const W = canvas.offsetWidth || 800;
+  const H = 220;
+  canvas.width  = W;
+  canvas.height = H;
+
+  const PAD = { top: 20, right: 20, bottom: 40, left: 48 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top  - PAD.bottom;
+
+  const cvLine = entries.map(e => e.coverlet.lineRate);
+  const mtLine = entries.map(e => e.mtp.lineRate);
+  const allVals = [...cvLine, ...mtLine];
+  const minV = Math.max(0,   Math.min(...allVals) - 0.02);
+  const maxV = Math.min(1.0, Math.max(...allVals) + 0.02);
+
+  function xOf(i) { return PAD.left + (i / (entries.length - 1)) * chartW; }
+  function yOf(v) { return PAD.top + (1 - (v - minV) / (maxV - minV)) * chartH; }
+
+  // Grid lines
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth   = 1;
+  for (let t = 0; t <= 4; t++) {
+    const v = minV + (t / 4) * (maxV - minV);
+    const y = yOf(v);
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + chartW, y); ctx.stroke();
+    ctx.fillStyle = '#8b949e';
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText((v * 100).toFixed(1) + '%', PAD.left - 6, y + 4);
+  }
+
+  // Series
+  function drawLine(data, color) {
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = 2;
+    data.forEach((v, i) => {
+      const x = xOf(i), y = yOf(v);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  }
+
+  drawLine(cvLine, getComputedStyle(document.documentElement).getPropertyValue('--coverlet').trim() || '#58a6ff');
+  drawLine(mtLine, getComputedStyle(document.documentElement).getPropertyValue('--mtp').trim()      || '#3fb950');
+
+  // X-axis labels (first and last)
+  ctx.fillStyle  = '#8b949e';
+  ctx.font       = '11px sans-serif';
+  ctx.textAlign  = 'center';
+  if (entries.length > 0) {
+    const fmtShort = iso => {
+      try { return new Date(iso).toLocaleDateString('en-AU', { day: '2-digit', month: 'short' }); }
+      catch { return ''; }
+    };
+    ctx.fillText(fmtShort(entries[0].runAt),                   xOf(0),                H - 10);
+    ctx.fillText(fmtShort(entries[entries.length - 1].runAt),  xOf(entries.length-1), H - 10);
+  }
+
+  // Legend
+  const legendY = H - 8;
+  const midX    = W / 2;
+  ctx.fillStyle  = '#58a6ff';
+  ctx.fillRect(midX - 80, legendY - 9, 16, 3);
+  ctx.fillStyle = '#e6edf3';
+  ctx.font      = '11px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('Coverlet', midX - 60, legendY);
+
+  ctx.fillStyle = '#3fb950';
+  ctx.fillRect(midX + 20, legendY - 9, 16, 3);
+  ctx.fillStyle = '#e6edf3';
+  ctx.fillText('MTP', midX + 40, legendY);
+}
+</script>
+
+</body>
+</html>
