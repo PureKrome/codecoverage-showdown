@@ -48,12 +48,20 @@ echo "==> [Coverlet] Test project : $TEST_PROJECT"
 echo "==> [Coverlet] Package ver  : $COVERLET_VER"
 echo "==> [Coverlet] Output       : $OUTPUT_XML"
 
+echo "==> [Coverlet] Adding coverlet.MTP $COVERLET_VER to test project"
 dotnet add "$TEST_PROJECT" package coverlet.MTP --version "$COVERLET_VER"
+
+echo "==> [Coverlet] Removing coverlet.collector if it exists to avoid conflicts"
 dotnet remove "$TEST_PROJECT" package coverlet.collector 2>/dev/null || true
+
+echo "==> [Coverlet] Removing Microsoft.Testing.Extensions.CodeCoverage if it exists to avoid conflicts"
 dotnet remove "$TEST_PROJECT" package Microsoft.Testing.Extensions.CodeCoverage 2>/dev/null || true
+
+echo "==> [Coverlet] Restoring packages..."
 dotnet restore "$TEST_PROJECT"
 
 # Coverlet command line options: https://github.com/coverlet-coverage/coverlet/blob/master/Documentation/Coverlet.MTP.Integration.md#command-line-options
+echo "==> [Coverlet] Running tests with coverlet.MTP..."
 dotnet run \
   --project "$TEST_PROJECT" \
   --framework "$TFM" \
@@ -64,6 +72,7 @@ dotnet run \
   --coverlet-file-prefix coverlet \
   --coverlet-include "[Humanizer]*"
 
+echo "==> [Coverlet] Test run completed. Looking for generated coverage file..."
 # Search the entire humanizer dir for any cobertura xml produced after this run
 # The filename includes a timestamp so we match on the extension pattern
 GENERATED="$(find "$HUMANIZER_DIR" -name "*.cobertura.*.xml" -newer "$TEST_PROJECT" 2>/dev/null | head -1)"

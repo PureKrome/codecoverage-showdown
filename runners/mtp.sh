@@ -46,12 +46,18 @@ echo "==> [MTP] Test project : $TEST_PROJECT"
 echo "==> [MTP] Package ver  : $MTP_VER"
 echo "==> [MTP] Output       : $OUTPUT_XML"
 
+echo "==> [MTP] NuGet package : Addings Microsoft.Testing.Extensions.CodeCoverage $MTP_VER"
 dotnet add "$TEST_PROJECT" package Microsoft.Testing.Extensions.CodeCoverage --version "$MTP_VER"
+
+echo "==> [MTP] NuGet package : Removing coverlet.MTP if it exists to avoid conflicts"
 dotnet remove "$TEST_PROJECT" package coverlet.MTP 2>/dev/null || true
+
+echo "==> [MTP] Restoring packages..."
 dotnet restore "$TEST_PROJECT"
 
 COVERAGE_OUTPUT="mtp-coverage.cobertura.xml"
 
+echo "==> [MTP] Running tests with Microsoft.Testing.Extensions.CodeCoverage..."
 dotnet run \
   --project "$TEST_PROJECT" \
   --framework "$TFM" \
@@ -61,6 +67,7 @@ dotnet run \
   --coverage-output-format cobertura \
   --coverage-output "$COVERAGE_OUTPUT"
 
+echo "==> [MTP] Test run completed. Looking for generated coverage file..."
 GENERATED="$(find "$HUMANIZER_DIR" -name "$COVERAGE_OUTPUT" 2>/dev/null | head -1)"
 if [ -z "$GENERATED" ]; then
   echo "ERROR: MTP did not produce a cobertura XML file" >&2
