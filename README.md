@@ -2,6 +2,8 @@
 
 A nightly comparison of two .NET code coverage tools — **Coverlet** and **Microsoft Testing Platform (MTP)** — run against the [Humanizer](https://github.com/Humanizr/Humanizer) open-source project.
 
+**Live results: https://purekrome.github.io/codecoverage-showdown**
+
 Results are published to GitHub Pages.
 
 ---
