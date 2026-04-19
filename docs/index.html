@@ -503,12 +503,15 @@
   // Toggle button
   document.getElementById('toggle-btn').addEventListener('click', () => {
     [toolA, toolB] = [toolB, toolA];
+    // Always store which tool is A so the restore condition is unambiguous.
     localStorage.setItem('showdown-perspective', toolA.key);
     render();
   });
 
-  // Restore saved perspective
-  if (localStorage.getItem('showdown-perspective') === 'mtp') {
+  // Restore saved perspective — must run after toolA/toolB are initialised,
+  // before the first render() call.
+  const saved = localStorage.getItem('showdown-perspective');
+  if (saved && saved !== toolA.key) {
     [toolA, toolB] = [toolB, toolA];
   }
 
