@@ -39,6 +39,14 @@
     header h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
     header p   { color: var(--muted); }
 
+    .header-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
     .badges {
       display: flex;
       gap: 0.75rem;
@@ -61,6 +69,24 @@
     }
     .dot-coverlet { background: var(--coverlet); }
     .dot-mtp      { background: var(--mtp); }
+
+    /* Toggle button */
+    #toggle-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+      padding: 0.4rem 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      white-space: nowrap;
+      margin-top: 0.25rem;
+    }
+    #toggle-btn:hover { border-color: var(--muted); }
+    #toggle-btn .arrow { font-size: 15px; }
 
     main { max-width: 1100px; margin: 0 auto; }
 
@@ -95,10 +121,19 @@
       border-radius: 4px;
       margin-left: 6px;
       font-weight: 600;
+      cursor: help;
     }
     .delta.pos { background: rgba(63,185,80,.15); color: var(--mtp); }
     .delta.neg { background: rgba(248,81,73,.15);  color: #f85149; }
     .delta.neu { background: rgba(139,148,158,.1); color: var(--muted); }
+
+    /* pp legend */
+    .pp-legend {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      padding: 0 0.25rem;
+    }
 
     /* Comparison table */
     .section-title {
@@ -163,11 +198,34 @@
 <body>
 
 <header>
-  <h1>Coverage Showdown</h1>
-  <p>
-    Coverlet vs Microsoft Testing Platform (MTP) code coverage -
-    running against <a href="https://github.com/Humanizr/Humanizer" target="_blank">Humanizr/Humanizer</a> main branch
-  </p>
+  <div class="header-row">
+    <div>
+      <h1>Coverage Showdown</h1>
+      <p>
+        Coverlet vs Microsoft Testing Platform (MTP) code coverage -
+        running against <a href="https://github.com/Humanizr/Humanizer" target="_blank">Humanizr/Humanizer</a> main branch
+      </p>
+    </div>
+    <button id="toggle-btn" title="Swap which tool is treated as the baseline for deltas">
+      <span class="arrow">⇄</span>
+      <span id="toggle-label">Coverlet → MTP</span>
+    </button>
+    <a href="https://github.com/PureKrome/codecoverage-showdown" target="_blank"
+       title="View source on GitHub"
+       style="display:flex;align-items:center;gap:0.4rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:0.4rem 0.9rem;font-size:13px;color:var(--text);text-decoration:none;margin-top:0.25rem;">
+      <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+                 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+                 -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
+                 .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
+                 -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27
+                 .68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
+                 .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
+                 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+      </svg>
+      GitHub
+    </a>
+  </div>
   <div class="badges" id="badges">
     <span class="badge"><span class="dot dot-coverlet"></span>Coverlet loading...</span>
     <span class="badge"><span class="dot dot-mtp"></span>MTP loading...</span>
@@ -187,55 +245,78 @@
       default - not necessarily a bug in either tool.
     </div>
 
-    <div class="grid-2">
-      <div class="card" id="card-coverlet">
-        <h2>Coverlet</h2>
-        <div class="metrics" id="metrics-coverlet"></div>
+    <div class="grid-2" id="metric-cards">
+      <div class="card" id="card-a">
+        <h2 id="card-a-title">Coverlet</h2>
+        <div class="metrics" id="metrics-a"></div>
       </div>
-      <div class="card" id="card-mtp">
-        <h2>Microsoft Testing Platform</h2>
-        <div class="metrics" id="metrics-mtp"></div>
+      <div class="card" id="card-b">
+        <h2 id="card-b-title">Microsoft Testing Platform</h2>
+        <div class="metrics" id="metrics-b"></div>
       </div>
     </div>
 
     <div class="card">
-      <h2>Head-to-head summary</h2>
+      <h2 id="summary-title">Head-to-head summary</h2>
       <table id="summary-table">
         <thead>
           <tr>
             <th>Metric</th>
-            <th>Coverlet</th>
-            <th>MTP</th>
-            <th>Delta (MTP - Coverlet)</th>
+            <th id="summary-th-a">Coverlet</th>
+            <th id="summary-th-b">MTP</th>
+            <th id="summary-th-delta">Delta (MTP − Coverlet)</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
     </div>
+    <p class="pp-legend">
+      <strong>pp</strong> = percentage points — the absolute difference between two percentages.
+      For example, 90.0% → 91.0% is <strong>+1.0pp</strong>, not +1.1% (which would be a relative change).
+      Hover any delta pill for the raw values.
+    </p>
 
     <div class="section-title" style="margin-top: 1.5rem;">Per-package breakdown</div>
-    <div class="note">
-      Coverlet instruments all assemblies visible to the test runner, including third-party
-      dependencies (Argon, Verify, DiffEngine, etc.). MTP only reports on the project under
-      test. Rows where MTP shows <code>-</code> are test dependencies that only Coverlet
-      picked up — they are not meaningful for comparison. The <strong>Humanizer</strong>
-      row is the only apples-to-apples comparison.
-    </div>
     <div class="card">
       <table id="pkg-table">
         <thead>
           <tr>
             <th>Package</th>
-            <th>Coverlet Line</th>
-            <th>Coverlet Branch</th>
-            <th>MTP Line</th>
-            <th>MTP Branch</th>
+            <th id="pkg-th-a-line">Coverlet Line</th>
+            <th id="pkg-th-a-branch">Coverlet Branch</th>
+            <th id="pkg-th-b-line">MTP Line</th>
+            <th id="pkg-th-b-branch">MTP Branch</th>
             <th>Line Delta</th>
             <th>Branch Delta</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
+    </div>
+
+    <div class="section-title">Top file-level differences (line rate)</div>
+    <div class="note">
+      Files where Coverlet and MTP report a different line rate, ordered by largest absolute
+      difference. Only files present in both reports are shown. A positive delta means the
+      second tool covers more lines in that file; negative means the first tool covers more.
+    </div>
+    <div class="card">
+      <table id="filediff-table">
+        <thead>
+          <tr>
+            <th>File</th>
+            <th id="file-th-a-lines">Coverlet lines</th>
+            <th id="file-th-b-lines">MTP lines</th>
+            <th id="file-th-a-rate">Coverlet rate</th>
+            <th id="file-th-b-rate">MTP rate</th>
+            <th>Delta</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="filediff-empty" style="display:none;color:var(--muted);padding:1rem;font-size:13px;">
+        No file-level differences found — both tools agree on every file.
+      </p>
     </div>
 
     <div class="section-title">Coverage history (line rate)</div>
@@ -256,7 +337,6 @@
 </footer>
 
 <script>
-// Minimal chart - no external dependencies
 (async () => {
   let data, historyData;
   try {
@@ -273,60 +353,158 @@
     return;
   }
 
-  document.getElementById('loading').style.display  = 'none';
-  document.getElementById('content').style.display  = 'block';
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
 
-  const { latest, packageComparisons } = data;
-  const { coverlet, mtp } = latest;
+  const { latest, packageComparisons, fileDiffs } = data;
 
-  // Badges
+  // Badges (static — not affected by toggle)
   document.getElementById('badges').innerHTML = `
-    <span class="badge"><span class="dot dot-coverlet"></span>Coverlet ${coverlet.version}</span>
-    <span class="badge"><span class="dot dot-mtp"></span>MTP ${mtp.version}</span>
-    <span class="badge" id="badge-run">Last run: ${fmtDate(latest.runAt)}</span>
-    <span class="badge" id="badge-sha">Humanizer @ ${latest.humanizerSha}</span>
+    <span class="badge"><span class="dot dot-coverlet"></span>Coverlet ${latest.coverlet.version}</span>
+    <span class="badge"><span class="dot dot-mtp"></span>MTP ${latest.mtp.version}</span>
+    <span class="badge">Last run: ${fmtDate(latest.runAt)}</span>
+    <span class="badge">Humanizer @ ${latest.humanizerSha}</span>
   `;
 
-  // Metric cards
-  renderMetrics('metrics-coverlet', coverlet, 'coverlet');
-  renderMetrics('metrics-mtp',      mtp,      'mtp');
+  // Tool descriptors — swap these to toggle perspective
+  const tools = {
+    coverlet: {
+      key:       'coverlet',
+      label:     'Coverlet',
+      shortLabel:'Coverlet',
+      cssClass:  'coverlet',
+      colClass:  'coverlet-col',
+      data:      latest.coverlet,
+    },
+    mtp: {
+      key:       'mtp',
+      label:     'Microsoft Testing Platform',
+      shortLabel:'MTP',
+      cssClass:  'mtp',
+      colClass:  'mtp-col',
+      data:      latest.mtp,
+    },
+  };
 
-  // Summary table
-  const summaryBody = document.querySelector('#summary-table tbody');
-  [
-    ['Line rate',   'lineRate'],
-    ['Branch rate', 'branchRate'],
-    ['Method rate', 'methodRate'],
-  ].forEach(([label, key]) => {
-    const cv = coverlet[key], mv = mtp[key];
-    const delta = mv - cv;
-    summaryBody.insertAdjacentHTML('beforeend', `
-      <tr>
-        <td>${label}</td>
-        <td class="coverlet-col">${pct(cv)}</td>
-        <td class="mtp-col">${pct(mv)}</td>
-        <td>${deltaPill(delta)}</td>
-      </tr>`);
+  let toolA = tools.coverlet;
+  let toolB = tools.mtp;
+
+  function render() {
+    // Toggle button label
+    document.getElementById('toggle-label').textContent =
+      `${toolA.shortLabel} → ${toolB.shortLabel}`;
+
+    // Metric cards
+    document.getElementById('card-a-title').textContent = toolA.label;
+    document.getElementById('card-b-title').textContent = toolB.label;
+    renderMetrics('metrics-a', toolA.data, toolA.cssClass);
+    renderMetrics('metrics-b', toolB.data, toolB.cssClass);
+
+    // Summary table headers
+    document.getElementById('summary-th-a').textContent = toolA.shortLabel;
+    document.getElementById('summary-th-b').textContent = toolB.shortLabel;
+    document.getElementById('summary-th-delta').textContent =
+      `Delta (${toolB.shortLabel} − ${toolA.shortLabel})`;
+
+    // Summary table body
+    const summaryBody = document.querySelector('#summary-table tbody');
+    summaryBody.innerHTML = '';
+    [
+      ['Line rate',   'lineRate'],
+      ['Branch rate', 'branchRate'],
+      ['Method rate', 'methodRate'],
+    ].forEach(([label, key]) => {
+      const av = toolA.data[key], bv = toolB.data[key];
+      summaryBody.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td>${label}</td>
+          <td class="${toolA.colClass}">${pct(av)}</td>
+          <td class="${toolB.colClass}">${pct(bv)}</td>
+          <td>${deltaPill(bv - av, av, bv)}</td>
+        </tr>`);
+    });
+
+    // Package table headers
+    document.getElementById('pkg-th-a-line').textContent   = `${toolA.shortLabel} Line`;
+    document.getElementById('pkg-th-a-branch').textContent = `${toolA.shortLabel} Branch`;
+    document.getElementById('pkg-th-b-line').textContent   = `${toolB.shortLabel} Line`;
+    document.getElementById('pkg-th-b-branch').textContent = `${toolB.shortLabel} Branch`;
+
+    // Package table body
+    const pkgBody = document.querySelector('#pkg-table tbody');
+    pkgBody.innerHTML = '';
+    (packageComparisons ?? []).forEach(pkg => {
+      const aLine   = toolA.key === 'coverlet' ? pkg.coverletLine   : pkg.mtpLine;
+      const aBranch = toolA.key === 'coverlet' ? pkg.coverletBranch : pkg.mtpBranch;
+      const bLine   = toolB.key === 'coverlet' ? pkg.coverletLine   : pkg.mtpLine;
+      const bBranch = toolB.key === 'coverlet' ? pkg.coverletBranch : pkg.mtpBranch;
+      pkgBody.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td style="font-family:monospace;font-size:12px">${pkg.name}</td>
+          <td class="${toolA.colClass}">${pctOrDash(aLine)}</td>
+          <td class="${toolA.colClass}">${pctOrDash(aBranch)}</td>
+          <td class="${toolB.colClass}">${pctOrDash(bLine)}</td>
+          <td class="${toolB.colClass}">${pctOrDash(bBranch)}</td>
+          <td>${aLine   != null && bLine   != null ? deltaPill(bLine   - aLine,   aLine,   bLine)   : '-'}</td>
+          <td>${aBranch != null && bBranch != null ? deltaPill(bBranch - aBranch, aBranch, bBranch) : '-'}</td>
+        </tr>`);
+    });
+
+    // File diff table headers
+    document.getElementById('file-th-a-lines').textContent = `${toolA.shortLabel} lines`;
+    document.getElementById('file-th-b-lines').textContent = `${toolB.shortLabel} lines`;
+    document.getElementById('file-th-a-rate').textContent  = `${toolA.shortLabel} rate`;
+    document.getElementById('file-th-b-rate').textContent  = `${toolB.shortLabel} rate`;
+
+    // File diff table body
+    // The JSON always stores coverlet as "a" and mtp as "b"; flip if needed.
+    const diffs = fileDiffs ?? [];
+    const fileDiffBody = document.querySelector('#filediff-table tbody');
+    fileDiffBody.innerHTML = '';
+    document.getElementById('filediff-empty').style.display = 'none';
+
+    if (diffs.length === 0) {
+      document.getElementById('filediff-empty').style.display = 'block';
+    } else {
+      diffs.forEach(f => {
+        const aLines   = toolA.key === 'coverlet'
+          ? `${f.coverletLinesCovered}/${f.coverletLinesValid}`
+          : `${f.mtpLinesCovered}/${f.mtpLinesValid}`;
+        const bLines   = toolB.key === 'coverlet'
+          ? `${f.coverletLinesCovered}/${f.coverletLinesValid}`
+          : `${f.mtpLinesCovered}/${f.mtpLinesValid}`;
+        const aRate    = toolA.key === 'coverlet' ? f.coverletLineRate : f.mtpLineRate;
+        const bRate    = toolB.key === 'coverlet' ? f.coverletLineRate : f.mtpLineRate;
+        const delta    = bRate - aRate;
+        const shortName = f.fileName.replace(/^src\/Humanizer\//i, '');
+        fileDiffBody.insertAdjacentHTML('beforeend', `
+          <tr>
+            <td style="font-family:monospace;font-size:12px" title="${f.fileName}">${shortName}</td>
+            <td class="${toolA.colClass}">${aLines}</td>
+            <td class="${toolB.colClass}">${bLines}</td>
+            <td class="${toolA.colClass}">${pct(aRate)}</td>
+            <td class="${toolB.colClass}">${pct(bRate)}</td>
+            <td>${deltaPill(delta, aRate, bRate)}</td>
+          </tr>`);
+      });
+    }
+  }
+
+  // Toggle button
+  document.getElementById('toggle-btn').addEventListener('click', () => {
+    [toolA, toolB] = [toolB, toolA];
+    localStorage.setItem('showdown-perspective', toolA.key);
+    render();
   });
 
-  // Package table
-  const pkgBody = document.querySelector('#pkg-table tbody');
-  (packageComparisons ?? []).forEach(pkg => {
-    const lineDelta   = safeNum(pkg.mtpLine)   - safeNum(pkg.coverletLine);
-    const branchDelta = safeNum(pkg.mtpBranch) - safeNum(pkg.coverletBranch);
-    pkgBody.insertAdjacentHTML('beforeend', `
-      <tr>
-        <td style="font-family:monospace;font-size:12px">${pkg.name}</td>
-        <td class="coverlet-col">${pctOrDash(pkg.coverletLine)}</td>
-        <td class="coverlet-col">${pctOrDash(pkg.coverletBranch)}</td>
-        <td class="mtp-col">${pctOrDash(pkg.mtpLine)}</td>
-        <td class="mtp-col">${pctOrDash(pkg.mtpBranch)}</td>
-        <td>${pkg.coverletLine != null && pkg.mtpLine   != null ? deltaPill(lineDelta)   : '-'}</td>
-        <td>${pkg.coverletBranch != null && pkg.mtpBranch != null ? deltaPill(branchDelta) : '-'}</td>
-      </tr>`);
-  });
+  // Restore saved perspective
+  if (localStorage.getItem('showdown-perspective') === 'mtp') {
+    [toolA, toolB] = [toolB, toolA];
+  }
 
-  // History chart
+  render();
+
+  // History chart (not affected by toggle — shows both series always)
   renderChart(historyData.runs ?? []);
 })();
 
@@ -350,12 +528,13 @@ function pct(v) {
 
 function pctOrDash(v) { return v == null ? '-' : pct(v); }
 
-function safeNum(v) { return v ?? 0; }
-
-function deltaPill(delta) {
+function deltaPill(delta, aVal, bVal) {
   const formatted = (delta >= 0 ? '+' : '') + (delta * 100).toFixed(2) + 'pp';
   const cls = Math.abs(delta) < 0.0001 ? 'neu' : delta > 0 ? 'pos' : 'neg';
-  return `<span class="delta ${cls}">${formatted}</span>`;
+  const tip = (aVal != null && bVal != null)
+    ? ` title="${pct(aVal)} → ${pct(bVal)}"`
+    : '';
+  return `<span class="delta ${cls}"${tip}>${formatted}</span>`;
 }
 
 function fmtDate(iso) {
@@ -371,7 +550,6 @@ function renderChart(history) {
   const canvas = document.getElementById('history-chart');
   const ctx    = canvas.getContext('2d');
 
-  // Reverse so oldest is left
   const entries = [...history].reverse();
   if (entries.length < 2) {
     ctx.fillStyle = '#8b949e';
@@ -412,7 +590,6 @@ function renderChart(history) {
     ctx.fillText((v * 100).toFixed(1) + '%', PAD.left - 6, y + 4);
   }
 
-  // Series
   function drawLine(data, color) {
     ctx.beginPath();
     ctx.strokeStyle = color;
@@ -427,7 +604,6 @@ function renderChart(history) {
   drawLine(cvLine, getComputedStyle(document.documentElement).getPropertyValue('--coverlet').trim() || '#58a6ff');
   drawLine(mtLine, getComputedStyle(document.documentElement).getPropertyValue('--mtp').trim()      || '#3fb950');
 
-  // X-axis labels (first and last)
   ctx.fillStyle  = '#8b949e';
   ctx.font       = '11px sans-serif';
   ctx.textAlign  = 'center';
@@ -436,11 +612,10 @@ function renderChart(history) {
       try { return new Date(iso).toLocaleDateString('en-AU', { day: '2-digit', month: 'short' }); }
       catch { return ''; }
     };
-    ctx.fillText(fmtShort(entries[0].runAt),                   xOf(0),                H - 10);
-    ctx.fillText(fmtShort(entries[entries.length - 1].runAt),  xOf(entries.length-1), H - 10);
+    ctx.fillText(fmtShort(entries[0].runAt),                  xOf(0),                H - 10);
+    ctx.fillText(fmtShort(entries[entries.length - 1].runAt), xOf(entries.length-1), H - 10);
   }
 
-  // Legend
   const legendY = H - 8;
   const midX    = W / 2;
   ctx.fillStyle  = '#58a6ff';

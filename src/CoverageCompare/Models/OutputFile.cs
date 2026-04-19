@@ -4,4 +4,5 @@ internal sealed class OutputFile
 {
     public RunEntry Latest { get; set; } = new();
     public List<PackageComparison> PackageComparisons { get; set; } = [];
+    public List<FileDiff> FileDiffs { get; set; } = [];
 }

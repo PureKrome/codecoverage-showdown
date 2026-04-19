@@ -1,6 +1,7 @@
 
-
+# Where humanizer's repo is cloned locally
 temp/
+# Where the coverage files and generated report are stored
 results/
 
 *.obj
