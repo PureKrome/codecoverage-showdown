@@ -1,6 +1,22 @@
 {
   "runs": [
     {
+      "runAt": "2026-04-19T02:15:27.0424131Z",
+      "humanizerSha": "123bb",
+      "coverlet": {
+        "version": "10.0",
+        "lineRate": 0.9052,
+        "branchRate": 0.8342,
+        "methodRate": 0.6632789395293419
+      },
+      "mtp": {
+        "version": "18.6.2",
+        "lineRate": 0.9099,
+        "branchRate": 0.8568,
+        "methodRate": 0.7117284125379167
+      }
+    },
+    {
       "runAt": "2026-04-19T00:17:42.0846060Z",
       "humanizerSha": "123bb",
       "coverlet": {

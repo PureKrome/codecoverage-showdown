@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>https://purekrome.github.io/codecoverage-showdown/feed.xml</id>
+  <title>Coverage Showdown — Coverlet vs MTP</title>
+  <subtitle>Nightly .NET code coverage comparison against Humanizer</subtitle>
+  <link rel="alternate" href="https://purekrome.github.io/codecoverage-showdown" />
+  <link rel="self" href="https://purekrome.github.io/codecoverage-showdown/feed.xml" />
+  <updated>2026-04-19T02:15:27.0424131Z</updated>
+  <author>
+    <name>Coverage Showdown</name>
+  </author>
+  <entry>
+    <id>https://purekrome.github.io/codecoverage-showdown#2026-04-19T02:15:27.0424131Z</id>
+    <title>coverlet 10.0 / MTP 18.6.2 — Humanizer 123bb</title>
+    <updated>2026-04-19T02:15:27.0424131Z</updated>
+    <link href="https://purekrome.github.io/codecoverage-showdown" />
+    <content type="html">&lt;table&gt;
+  &lt;tr&gt;&lt;th&gt;&lt;/th&gt;&lt;th&gt;Coverlet 10.0&lt;/th&gt;&lt;th&gt;MTP 18.6.2&lt;/th&gt;&lt;th&gt;Delta&lt;/th&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Line&lt;/td&gt;&lt;td&gt;90.5 %&lt;/td&gt;&lt;td&gt;91.0 %&lt;/td&gt;&lt;td&gt;+0.47pp&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Branch&lt;/td&gt;&lt;td&gt;83.4 %&lt;/td&gt;&lt;td&gt;85.7 %&lt;/td&gt;&lt;td&gt;+2.26pp&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Method&lt;/td&gt;&lt;td&gt;66.3 %&lt;/td&gt;&lt;td&gt;71.2 %&lt;/td&gt;&lt;td&gt;+4.84pp&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+&lt;p&gt;Humanizer commit: 123bb &amp;bull; &lt;a href="https://purekrome.github.io/codecoverage-showdown"&gt;View full report&lt;/a&gt;&lt;/p&gt;</content>
+  </entry>
+  <entry>
+    <id>https://purekrome.github.io/codecoverage-showdown#2026-04-19T00:17:42.0846060Z</id>
+    <title>coverlet 10.0 / MTP 18.6.2 — Humanizer 123bb</title>
+    <updated>2026-04-19T00:17:42.0846060Z</updated>
+    <link href="https://purekrome.github.io/codecoverage-showdown" />
+    <content type="html">&lt;table&gt;
+  &lt;tr&gt;&lt;th&gt;&lt;/th&gt;&lt;th&gt;Coverlet 10.0&lt;/th&gt;&lt;th&gt;MTP 18.6.2&lt;/th&gt;&lt;th&gt;Delta&lt;/th&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Line&lt;/td&gt;&lt;td&gt;90.5 %&lt;/td&gt;&lt;td&gt;91.0 %&lt;/td&gt;&lt;td&gt;+0.47pp&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Branch&lt;/td&gt;&lt;td&gt;83.4 %&lt;/td&gt;&lt;td&gt;85.7 %&lt;/td&gt;&lt;td&gt;+2.26pp&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Method&lt;/td&gt;&lt;td&gt;66.3 %&lt;/td&gt;&lt;td&gt;71.2 %&lt;/td&gt;&lt;td&gt;+4.84pp&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+&lt;p&gt;Humanizer commit: 123bb &amp;bull; &lt;a href="https://purekrome.github.io/codecoverage-showdown"&gt;View full report&lt;/a&gt;&lt;/p&gt;</content>
+  </entry>
+  <entry>
+    <id>https://purekrome.github.io/codecoverage-showdown#2026-04-18T13:42:22.2335271Z</id>
+    <title>coverlet 10.0 / MTP 18.6.2 — Humanizer 123aa</title>
+    <updated>2026-04-18T13:42:22.2335271Z</updated>
+    <link href="https://purekrome.github.io/codecoverage-showdown" />
+    <content type="html">&lt;table&gt;
+  &lt;tr&gt;&lt;th&gt;&lt;/th&gt;&lt;th&gt;Coverlet 10.0&lt;/th&gt;&lt;th&gt;MTP 18.6.2&lt;/th&gt;&lt;th&gt;Delta&lt;/th&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Line&lt;/td&gt;&lt;td&gt;90.5 %&lt;/td&gt;&lt;td&gt;91.0 %&lt;/td&gt;&lt;td&gt;+0.47pp&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Branch&lt;/td&gt;&lt;td&gt;83.4 %&lt;/td&gt;&lt;td&gt;85.7 %&lt;/td&gt;&lt;td&gt;+2.26pp&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Method&lt;/td&gt;&lt;td&gt;66.3 %&lt;/td&gt;&lt;td&gt;71.2 %&lt;/td&gt;&lt;td&gt;+4.84pp&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+&lt;p&gt;Humanizer commit: 123aa &amp;bull; &lt;a href="https://purekrome.github.io/codecoverage-showdown"&gt;View full report&lt;/a&gt;&lt;/p&gt;</content>
+  </entry>
+</feed>
