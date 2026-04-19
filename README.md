@@ -101,12 +101,13 @@ mkdir -p results
 bash runners/coverlet.sh humanizer
 bash runners/mtp.sh      humanizer
 
-# Compare and generate JSON
+# Compare and generate JSON + Atom feed
 dotnet run --project src/CoverageCompare -- \
   results/coverlet.cobertura.xml \
   results/mtp.cobertura.xml \
   docs/data/latest.json \
   docs/data/history.json \
+  docs/feed.xml \
   <coverlet-version> \
   <mtp-version> \
   <humanizer-sha>
@@ -115,6 +116,20 @@ dotnet run --project src/CoverageCompare -- \
 dotnet tool install --global dotnet-serve  # once
 dotnet serve --directory docs/ --port 8080
 ```
+
+---
+
+## Staying up to date
+
+### Atom feed
+
+An [Atom feed](https://purekrome.github.io/codecoverage-showdown/feed.xml) is published alongside the dashboard. Subscribe to it in any feed reader (e.g. Feedly, NetNewsWire, Reeder) to get notified whenever a new comparison run completes.
+
+The feed is only updated when a new run actually happens — i.e. when at least one of the two NuGet packages releases a new version. If nothing changes upstream, the feed is unchanged.
+
+### Dashboard toggle preference
+
+The dashboard has a **⇄ toggle** that swaps which tool is treated as the baseline when calculating deltas (default: Coverlet → MTP). Your preference is saved in `localStorage` under the key `showdown-perspective` so it persists across page loads. Clearing site data resets it to the default.
 
 ---
 
@@ -128,6 +143,7 @@ runners/                  # Shell scripts that drive each tool
 src/CoverageCompare/      # .NET 10 console app — parses XMLs, writes JSON
 docs/                     # GitHub Pages root
   index.html              # The comparison dashboard
+  feed.xml                # Atom feed (one entry per run)
   data/
     latest.json           # Latest run summary
     history.json          # Append-only run history (trend chart data)
