@@ -117,6 +117,39 @@ dotnet tool install --global dotnet-serve  # once
 dotnet serve --directory docs/ --port 8080
 ```
 
+
+---
+
+## Optional: Pin Humanizer to a specific commit in CI (manual runs)
+
+The workflow exposes an optional manual input `humanizer_commit` (visible when you click "Run workflow") that allows you to specify a commit SHA to check out in the Humanizer repo for that run. If you leave the field empty, the workflow falls back to cloning `main` shallowly — same as before.
+
+Why use the input:
+- Convenience: paste a commit SHA in the Run workflow UI and run the pipeline against that exact snapshot.
+- Explicitness: the run's event payload includes the input and the jobs echo the value so reviewers can see which commit was used.
+
+How it works in the workflow:
+- The workflow defines a `workflow_dispatch` input named `humanizer_commit`.
+- Jobs map that input into the `HUMANIZER_COMMIT` environment variable. If the input is empty, the workflow now also supports an optional repository Actions variable `vars.HUMANIZER_COMMIT` as a fallback (useful if you want a repo-level default).
+- The clone steps echo the effective `HUMANIZER_COMMIT`. When set, the clone logic tries progressive shallow strategies to avoid a full clone:
+  1. depth=1 clone of main and check if the SHA is present there
+  2. fetch --depth=50 for that SHA and check again
+  3. full clone fallback and checkout
+  If the commit still cannot be found the job fails early with a clear error.
+
+Where to set it (examples):
+- Manual run (recommended for one-off checks): GitHub → Actions → Nightly Coverage Showdown → Run workflow → paste a SHA into the "humanizer_commit" field.
+- Repository default (optional fallback): Settings → Actions → Variables → Add `HUMANIZER_COMMIT` — when present the workflow uses this value if the manual input is left empty.
+
+Run workflow UI example (textual):
+
+1. Open the repository on GitHub and go to Actions → Nightly Coverage Showdown.
+2. Click "Run workflow".
+3. In the "humanizer_commit" input box paste the commit SHA you want to test (e.g. `2a5f3b7`). Leave it empty to use main or a repo-level default.
+4. Click the green "Run workflow" button.
+
+Security note: `workflow_dispatch` inputs are not secrets — do not use this for sensitive values.
+
 ---
 
 ## Staying up to date
