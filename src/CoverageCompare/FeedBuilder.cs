@@ -22,7 +22,7 @@ internal static class FeedBuilder
 
         var feed = new XElement(Atom + "feed",
             new XElement(Atom + "id",      FeedUrl),
-            new XElement(Atom + "title",   "Coverage Showdown — Coverlet vs MTP"),
+            new XElement(Atom + "title",   "Coverage Showdown — Coverlet vs MTECC"),
             new XElement(Atom + "subtitle","Nightly .NET code coverage comparison against Humanizer"),
             new XElement(Atom + "link",    new XAttribute("rel", "alternate"), new XAttribute("href", SiteUrl)),
             new XElement(Atom + "link",    new XAttribute("rel", "self"),      new XAttribute("href", FeedUrl)),
@@ -43,14 +43,14 @@ internal static class FeedBuilder
     private static XElement BuildEntry(RunEntry run)
     {
         var entryId = $"{SiteUrl}#{run.RunAt}";
-        var title   = $"coverlet {run.Coverlet.Version} / MTP {run.Mtp.Version} — Humanizer {run.HumanizerSha}";
+            var title   = $"coverlet {run.Coverlet.Version} / MTECC {run.Mtecc.Version} — Humanizer {run.HumanizerSha}";
 
         var content = $"""
             <table>
-              <tr><th></th><th>Coverlet {run.Coverlet.Version}</th><th>MTP {run.Mtp.Version}</th><th>Delta</th></tr>
-              <tr><td>Line</td><td>{run.Coverlet.LineRate:P1}</td><td>{run.Mtp.LineRate:P1}</td><td>{Delta(run.Mtp.LineRate, run.Coverlet.LineRate)}</td></tr>
-              <tr><td>Branch</td><td>{run.Coverlet.BranchRate:P1}</td><td>{run.Mtp.BranchRate:P1}</td><td>{Delta(run.Mtp.BranchRate, run.Coverlet.BranchRate)}</td></tr>
-              <tr><td>Method</td><td>{run.Coverlet.MethodRate:P1}</td><td>{run.Mtp.MethodRate:P1}</td><td>{Delta(run.Mtp.MethodRate, run.Coverlet.MethodRate)}</td></tr>
+              <tr><th></th><th>Coverlet {run.Coverlet.Version}</th><th>MTECC {run.Mtecc.Version}</th><th>Delta</th></tr>
+              <tr><td>Line</td><td>{run.Coverlet.LineRate:P1}</td><td>{run.Mtecc.LineRate:P1}</td><td>{Delta(run.Mtecc.LineRate, run.Coverlet.LineRate)}</td></tr>
+              <tr><td>Branch</td><td>{run.Coverlet.BranchRate:P1}</td><td>{run.Mtecc.BranchRate:P1}</td><td>{Delta(run.Mtecc.BranchRate, run.Coverlet.BranchRate)}</td></tr>
+              <tr><td>Method</td><td>{run.Coverlet.MethodRate:P1}</td><td>{run.Mtecc.MethodRate:P1}</td><td>{Delta(run.Mtecc.MethodRate, run.Coverlet.MethodRate)}</td></tr>
             </table>
             <p>Humanizer commit: {run.HumanizerSha} &bull; <a href="{SiteUrl}">View full report</a></p>
             """;

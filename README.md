@@ -1,6 +1,6 @@
 # Coverage Showdown
 
-A nightly comparison of two .NET code coverage tools — **Coverlet** and **Microsoft Testing Platform (MTP)** — run against the [Humanizer](https://github.com/Humanizr/Humanizer) open-source project.
+A nightly comparison of two .NET code coverage tools — **Coverlet** and **Microsoft Testing Extensions Code Coverage (MTECC)** — run against the [Humanizer](https://github.com/Humanizr/Humanizer) open-source project.
 
 **Live results: https://purekrome.github.io/codecoverage-showdown**
 
@@ -12,7 +12,7 @@ Results are published to GitHub Pages.
 
 1. **Clone** — Humanizer's `main` branch is cloned fresh (`--depth=1`) on each run.
 
-2. **Run each tool independently** — Coverlet and MTP each get their own clean runner. The scripts in `runners/` inject the relevant NuGet package into Humanizer's test project at runtime, remove the competing tool's package, and run the test suite via `dotnet run`.
+2. **Run each tool independently** — Coverlet and MTECC each get their own clean runner. The scripts in `runners/` inject the relevant NuGet package into Humanizer's test project at runtime, remove the competing tool's package, and run the test suite via `dotnet run`.
 
 3. **Cobertura output** — Both tools are configured to emit [Cobertura XML](https://cobertura.github.io/cobertura/). This is the common format that makes the comparison possible.
 
@@ -56,7 +56,7 @@ The two parsed reports are aligned by package name. For each package that appear
 **Example** — given these two Cobertura files:
 
 ```
-coverlet.cobertura.xml          mtp.cobertura.xml
+coverlet.cobertura.xml          mtecc.cobertura.xml
   line-rate="0.9052"              line-rate="0.9099"
   branch-rate="0.8342"            branch-rate="0.8568"
   <package name="Humanizer"       <package name="Humanizer"
@@ -70,19 +70,19 @@ The output in `latest.json` becomes:
 {
   "latest": {
     "coverlet": { "lineRate": 0.9052, "branchRate": 0.8342 },
-    "mtp":      { "lineRate": 0.9099, "branchRate": 0.8568 }
+    "mtecc":    { "lineRate": 0.9099, "branchRate": 0.8568 }
   },
   "packageComparisons": [
     {
-      "name": "Humanizer",
+    "name": "Humanizer",
       "coverletLine": 0.9052, "coverletBranch": 0.8342,
-      "mtpLine":      0.9099, "mtpBranch":      0.8568
+      "mteccLine":      0.9099, "mteccBranch":      0.8568
     }
   ]
 }
 ```
 
-The delta shown in the UI (`+0.47pp` line, `+2.26pp` branch) is calculated in the browser as `(mtp - coverlet) * 100`.
+The delta shown in the UI (`+0.47pp` line, `+2.26pp` branch) is calculated in the browser as `(mtecc - coverlet) * 100`.
 
 ### History (history.json)
 
@@ -98,18 +98,18 @@ git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git huma
 mkdir -p results
 
 # Run each tool
-bash runners/coverlet.sh humanizer
-bash runners/mtp.sh      humanizer
+    bash runners/coverlet.sh humanizer
+    bash runners/mtecc.sh      humanizer
 
 # Compare and generate JSON + Atom feed
 dotnet run --project src/CoverageCompare -- \
   results/coverlet.cobertura.xml \
-  results/mtp.cobertura.xml \
+  results/mtecc.cobertura.xml \
   docs/data/latest.json \
   docs/data/history.json \
   docs/feed.xml \
   <coverlet-version> \
-  <mtp-version> \
+  <mtecc-version> \
   <humanizer-sha>
 
 # Serve the site locally
@@ -162,7 +162,7 @@ The feed is only updated when a new run actually happens — i.e. when at least 
 
 ### Dashboard toggle preference
 
-The dashboard has a **⇄ toggle** that swaps which tool is treated as the baseline when calculating deltas (default: Coverlet → MTP). Your preference is saved in `localStorage` under the key `showdown-perspective` so it persists across page loads. Clearing site data resets it to the default.
+The dashboard has a **⇄ toggle** that swaps which tool is treated as the baseline when calculating deltas (default: Coverlet → MTECC). Your preference is saved in `localStorage` under the key `showdown-perspective` so it persists across page loads. Clearing site data resets it to the default.
 
 ---
 
@@ -172,7 +172,7 @@ The dashboard has a **⇄ toggle** that swaps which tool is treated as the basel
 runners/                  # Shell scripts that drive each tool
   common.sh               # Shared library (version resolution, SDK install, Nerdbank workaround)
   coverlet.sh             # Runs Coverlet, emits results/coverlet.cobertura.xml
-  mtp.sh                  # Runs MTP, emits results/mtp.cobertura.xml
+  mtecc.sh                # Runs MTECC, emits results/mtecc.cobertura.xml
 src/CoverageCompare/      # .NET 10 console app — parses XMLs, writes JSON
 docs/                     # GitHub Pages root
   index.html              # The comparison dashboard

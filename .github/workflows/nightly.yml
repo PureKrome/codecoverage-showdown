@@ -27,8 +27,9 @@ jobs:
     outputs:
       changed:       ${{ steps.version_check.outputs.changed }}
       coverlet_ver:  ${{ steps.versions.outputs.coverlet_ver }}
-      mtp_ver:       ${{ steps.versions.outputs.mtp_ver }}
+      mtecc_ver:       ${{ steps.versions.outputs.mtecc_ver }}
       humanizer_sha: ${{ steps.clone.outputs.humanizer_sha }}
+      humanizer_fetch_method: ${{ steps.clone.outputs.humanizer_fetch_method }}
 
     steps:
       - name: Checkout showdown repo
@@ -42,20 +43,29 @@ jobs:
           echo "HUMANIZER_COMMIT=${HUMANIZER_COMMIT:-<not set>}"
           if [ -n "${HUMANIZER_COMMIT}" ]; then
             echo "Cloning Humanizer and attempting to check out commit ${HUMANIZER_COMMIT}"
-            # Try a minimal shallow clone and fetch the commit with increasing depth to avoid a full clone when possible
-            git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer || true
+            # When a specific commit is requested, avoid checking out during the shallow clone.
+            # Some shallow clones may not contain the tree objects for unrelated commits and
+            # a checkout can fail with "unable to read tree <sha>". Use --no-checkout so we
+            # can fetch the requested commit (or fall back) before checking out.
+            git clone --no-checkout --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer || true
             if git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null 2>&1; then
               git -C humanizer checkout --detach "${HUMANIZER_COMMIT}"
+              echo "Checked out ${HUMANIZER_COMMIT} (present in initial shallow clone)"
+              echo "humanizer_fetch_method=present_in_initial_shallow" >> $GITHUB_OUTPUT
             else
               echo "Commit not present in depth=1 clone; trying fetch --depth=50"
               git -C humanizer fetch --depth=50 origin "${HUMANIZER_COMMIT}" || true
               if git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null 2>&1; then
                 git -C humanizer checkout --detach "${HUMANIZER_COMMIT}"
+                echo "Checked out ${HUMANIZER_COMMIT} after fetch --depth=50"
+                echo "humanizer_fetch_method=fetch_depth_50" >> $GITHUB_OUTPUT
               else
                 echo "Still not found; performing full clone as fallback"
                 rm -rf humanizer
                 git clone https://github.com/Humanizr/Humanizer.git humanizer
                 git -C humanizer checkout --detach "${HUMANIZER_COMMIT}" || true
+                echo "Checked out ${HUMANIZER_COMMIT} after full clone fallback"
+                echo "humanizer_fetch_method=full_clone" >> $GITHUB_OUTPUT
               fi
             fi
 
@@ -79,16 +89,16 @@ jobs:
             | grep -oP '"[0-9]+\.[0-9]+\.[0-9]+"' \
             | tail -1 \
             | tr -d '"')
-          MTP_VER=$(curl -s "https://api.nuget.org/v3-flatcontainer/microsoft.testing.extensions.codecoverage/index.json" \
+          MTECC_VER=$(curl -s "https://api.nuget.org/v3-flatcontainer/microsoft.testing.extensions.codecoverage/index.json" \
             | grep -oP '"versions":\s*\[.*?\]' \
             | grep -oP '"[0-9]+\.[0-9]+\.[0-9]+"' \
             | tail -1 \
             | tr -d '"')
 
           echo "coverlet_ver=${COVERLET_VER}" >> $GITHUB_OUTPUT
-          echo "mtp_ver=${MTP_VER}"           >> $GITHUB_OUTPUT
+          echo "mtecc_ver=${MTECC_VER}"           >> $GITHUB_OUTPUT
           echo "Coverlet => ${COVERLET_VER}"
-          echo "Microsoft.Testing.Extensions.CodeCoverage => ${MTP_VER}"
+          echo "Microsoft.Testing.Extensions.CodeCoverage => ${MTECC_VER}"
 
       - name: Check for version changes
         id: version_check
@@ -96,7 +106,7 @@ jobs:
           VERSIONS_FILE="versions.json"
           FORCE="${{ github.event_name == 'workflow_dispatch' }}"
           COVERLET_VER="${{ steps.versions.outputs.coverlet_ver }}"
-          MTP_VER="${{ steps.versions.outputs.mtp_ver }}"
+          MTECC_VER="${{ steps.versions.outputs.mtecc_ver }}"
 
           if [ ! -f "$VERSIONS_FILE" ]; then
             echo "No versions.json found - first run"
@@ -106,8 +116,8 @@ jobs:
             echo "changed=true" >> $GITHUB_OUTPUT
           else
             PREV_COVERLET=$(jq -r '.coverlet_mtp    // ""' "$VERSIONS_FILE")
-            PREV_MTP=$(jq -r '.mtp_codecoverage        // ""' "$VERSIONS_FILE")
-            if [ "$PREV_COVERLET" != "$COVERLET_VER" ] || [ "$PREV_MTP" != "$MTP_VER" ]; then
+            PREV_MTECC=$(jq -r '.mtecc_codecoverage        // ""' "$VERSIONS_FILE")
+            if [ "$PREV_COVERLET" != "$COVERLET_VER" ] || [ "$PREV_MTECC" != "$MTECC_VER" ]; then
               echo "Version change detected"
               echo "changed=true" >> $GITHUB_OUTPUT
             else
@@ -141,19 +151,26 @@ jobs:
           echo "HUMANIZER_COMMIT=${HUMANIZER_COMMIT:-<not set>}"
           if [ -n "${HUMANIZER_COMMIT}" ]; then
             echo "Cloning Humanizer and attempting to check out commit ${HUMANIZER_COMMIT}"
-            git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer || true
+            # Avoid checking out during shallow clone to prevent "unable to read tree" errors
+            git clone --no-checkout --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer || true
             if git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null 2>&1; then
               git -C humanizer checkout --detach "${HUMANIZER_COMMIT}"
+              echo "Checked out ${HUMANIZER_COMMIT} (present in initial shallow clone)"
+              echo "humanizer_fetch_method=present_in_initial_shallow" >> $GITHUB_OUTPUT
             else
               echo "Commit not present in depth=1 clone; trying fetch --depth=50"
               git -C humanizer fetch --depth=50 origin "${HUMANIZER_COMMIT}" || true
               if git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null 2>&1; then
                 git -C humanizer checkout --detach "${HUMANIZER_COMMIT}"
+                echo "Checked out ${HUMANIZER_COMMIT} after fetch --depth=50"
+                echo "humanizer_fetch_method=fetch_depth_50" >> $GITHUB_OUTPUT
               else
                 echo "Still not found; performing full clone as fallback"
                 rm -rf humanizer
                 git clone https://github.com/Humanizr/Humanizer.git humanizer
                 git -C humanizer checkout --detach "${HUMANIZER_COMMIT}" || true
+                echo "Checked out ${HUMANIZER_COMMIT} after full clone fallback"
+                echo "humanizer_fetch_method=full_clone" >> $GITHUB_OUTPUT
               fi
             fi
 
@@ -182,9 +199,9 @@ jobs:
           path: results/coverlet.cobertura.xml
 
   # ---------------------------------------------------------------------------
-  # 2b. Run MTP coverage (parallel)
+  # 2b. Run MTECC coverage (parallel)
   # ---------------------------------------------------------------------------
-  run-mtp:
+    run-mtecc:
     needs: prepare
     if: needs.prepare.outputs.changed == 'true'
     runs-on: ubuntu-latest
@@ -206,19 +223,26 @@ jobs:
           echo "HUMANIZER_COMMIT=${HUMANIZER_COMMIT:-<not set>}"
           if [ -n "${HUMANIZER_COMMIT}" ]; then
             echo "Cloning Humanizer and attempting to check out commit ${HUMANIZER_COMMIT}"
-            git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer || true
+            # Avoid checking out during shallow clone to prevent "unable to read tree" errors
+            git clone --no-checkout --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer || true
             if git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null 2>&1; then
               git -C humanizer checkout --detach "${HUMANIZER_COMMIT}"
+              echo "Checked out ${HUMANIZER_COMMIT} (present in initial shallow clone)"
+              echo "humanizer_fetch_method=present_in_initial_shallow" >> $GITHUB_OUTPUT
             else
               echo "Commit not present in depth=1 clone; trying fetch --depth=50"
               git -C humanizer fetch --depth=50 origin "${HUMANIZER_COMMIT}" || true
               if git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null 2>&1; then
                 git -C humanizer checkout --detach "${HUMANIZER_COMMIT}"
+                echo "Checked out ${HUMANIZER_COMMIT} after fetch --depth=50"
+                echo "humanizer_fetch_method=fetch_depth_50" >> $GITHUB_OUTPUT
               else
                 echo "Still not found; performing full clone as fallback"
                 rm -rf humanizer
                 git clone https://github.com/Humanizr/Humanizer.git humanizer
                 git -C humanizer checkout --detach "${HUMANIZER_COMMIT}" || true
+                echo "Checked out ${HUMANIZER_COMMIT} after full clone fallback"
+                echo "humanizer_fetch_method=full_clone" >> $GITHUB_OUTPUT
               fi
             fi
 
@@ -231,26 +255,26 @@ jobs:
             git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer
           fi
 
-      - name: Run MTP coverage
+      - name: Run MTECC coverage
         run: |
           mkdir -p results
-          chmod +x runners/mtp.sh
-          bash runners/mtp.sh \
-            humanizer \
-            "${{ needs.prepare.outputs.mtp_ver }}" \
-            results/mtp.cobertura.xml
+           chmod +x runners/mtecc.sh
+           bash runners/mtecc.sh \
+             humanizer \
+             "${{ needs.prepare.outputs.mtecc_ver }}" \
+             results/mtecc.cobertura.xml
 
-      - name: Upload MTP result
+      - name: Upload MTECC result
         uses: actions/upload-artifact@v7
         with:
-          name: mtp-result
-          path: results/mtp.cobertura.xml
+          name: mtecc-result
+          path: results/mtecc.cobertura.xml
 
   # ---------------------------------------------------------------------------
   # 3. Compare results, commit, and upload Pages artifact
   # ---------------------------------------------------------------------------
   compare:
-    needs: [prepare, run-coverlet, run-mtp]
+    needs: [prepare, run-coverlet, run-mtecc]
     if: needs.prepare.outputs.changed == 'true'
     runs-on: ubuntu-latest
     env:
@@ -271,10 +295,10 @@ jobs:
           name: coverlet-result
           path: results/
 
-      - name: Download MTP result
+      - name: Download MTECC result
         uses: actions/download-artifact@v8
         with:
-          name: mtp-result
+          name: mtecc-result
           path: results/
 
       - name: Compare results
@@ -284,22 +308,23 @@ jobs:
             --project src/CoverageCompare \
             -- \
             results/coverlet.cobertura.xml \
-            results/mtp.cobertura.xml \
+            results/mtecc.cobertura.xml \
             docs/data/latest.json \
             docs/data/history.json \
             docs/feed.xml \
             "${{ needs.prepare.outputs.coverlet_ver }}" \
-            "${{ needs.prepare.outputs.mtp_ver }}" \
+            "${{ needs.prepare.outputs.mtecc_ver }}" \
             "${{ needs.prepare.outputs.humanizer_sha }}"
 
       - name: Update versions.json
         run: |
           jq -n \
             --arg c "${{ needs.prepare.outputs.coverlet_ver }}" \
-            --arg m "${{ needs.prepare.outputs.mtp_ver }}" \
+            --arg m "${{ needs.prepare.outputs.mtecc_ver }}" \
             --arg d "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             --arg s "${{ needs.prepare.outputs.humanizer_sha }}" \
-            '{coverlet_mtp: $c, mtp_codecoverage: $m, last_run: $d, humanizer_sha: $s}' \
+            --arg f "${{ needs.prepare.outputs.humanizer_fetch_method }}" \
+            '{coverlet_mtp: $c, mtecc_codecoverage: $m, last_run: $d, humanizer_sha: $s, humanizer_fetch_method: $f}' \
             > versions.json
 
       - name: Commit and push
@@ -308,7 +333,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add versions.json docs/data/latest.json docs/data/history.json docs/feed.xml
           git diff --cached --quiet || git commit -m \
-            "chore: nightly run - coverlet ${{ needs.prepare.outputs.coverlet_ver }} / mtp ${{ needs.prepare.outputs.mtp_ver }} / humanizer ${{ needs.prepare.outputs.humanizer_sha }}"
+            "chore: nightly run - coverlet ${{ needs.prepare.outputs.coverlet_ver }} / mtecc ${{ needs.prepare.outputs.mtecc_ver }} / humanizer ${{ needs.prepare.outputs.humanizer_sha }}"
           git push
 
       - name: Upload Pages artifact

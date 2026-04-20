@@ -5,33 +5,33 @@ using CoverageCompare.Models;
 
 // Args:
 //   <coverlet-cobertura.xml>
-//   <mtp-cobertura.xml>
+  //   <mtecc-cobertura.xml>
 //   <output-latest.json>
 //   <output-history.json>
 //   <output-feed.xml>
 //   <coverlet-version>
-//   <mtp-version>
+  //   <mtecc-version>
 //   <humanizer-sha>
 
 if (args.Length < 8)
 {
     Console.Error.WriteLine(
-        "Usage: CoverageCompare <coverlet.xml> <mtp.xml> <latest.json> <history.json> <feed.xml> " +
-        "<coverlet-ver> <mtp-ver> <humanizer-sha>");
+        "Usage: CoverageCompare <coverlet.xml> <mtecc.xml> <latest.json> <history.json> <feed.xml> " +
+        "<coverlet-ver> <mtecc-ver> <humanizer-sha>");
     return 1;
 }
 
 var coverletXml  = args[0];
-var mtpXml       = args[1];
+var mteccXml     = args[1];
 var latestJson   = args[2];
 var historyJson  = args[3];
 var feedXml      = args[4];
 var coverletVer  = args[5];
-var mtpVer       = args[6];
+var mteccVer     = args[6];
 var humanizerSha = args[7];
 
 Console.WriteLine($"[Compare] Coverlet XML  : {coverletXml}");
-Console.WriteLine($"[Compare] MTP XML       : {mtpXml}");
+Console.WriteLine($"[Compare] MTECC XML     : {mteccXml}");
 Console.WriteLine($"[Compare] Latest JSON   : {latestJson}");
 Console.WriteLine($"[Compare] History JSON  : {historyJson}");
 Console.WriteLine($"[Compare] Feed XML      : {feedXml}");
@@ -58,11 +58,31 @@ if (File.Exists(historyJson))
     }
 }
 
+// Backfill per-run deltas for existing history entries if missing (covers older runs)
+foreach (var run in existingHistory.Runs)
+{
+    try
+    {
+        // Only compute if both tool summaries have values and deltas are zero
+        if (run != null && (run.LineDelta == 0 && run.BranchDelta == 0 && run.MethodDelta == 0))
+        {
+            // If line rates are non-zero (or both zero but present), compute delta
+            run.LineDelta = Math.Round(run.Coverlet.LineRate - run.Mtecc.LineRate, 4);
+            run.BranchDelta = Math.Round(run.Coverlet.BranchRate - run.Mtecc.BranchRate, 4);
+            run.MethodDelta = Math.Round(run.Coverlet.MethodRate - run.Mtecc.MethodRate, 4);
+        }
+    }
+    catch
+    {
+        // Ignore malformed historic entries
+    }
+}
+
 var coverletReport = CoberturaParser.Parse(coverletXml, "coverlet");
-var mtpReport      = CoberturaParser.Parse(mtpXml, "mtp");
+var mteccReport      = CoberturaParser.Parse(mteccXml, "mtecc");
 
 var (output, history) = ReportBuilder.Build(
-    coverletReport, mtpReport, coverletVer, mtpVer, humanizerSha, existingHistory);
+    coverletReport, mteccReport, coverletVer, mteccVer, humanizerSha, existingHistory);
 
 var feed = FeedBuilder.Build(history);
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Coverage Showdown - Coverlet vs MTP</title>
+  <title>Coverage Showdown - Coverlet vs MTECC</title>
   <style>
     :root {
       --bg:        #0d1117;
@@ -12,7 +12,7 @@
       --text:      #e6edf3;
       --muted:     #8b949e;
       --coverlet:  #58a6ff;
-      --mtp:       #3fb950;
+      --mtecc:       #3fb950;
       --warn:      #d29922;
       --radius:    8px;
       --gap:       1.5rem;
@@ -36,7 +36,7 @@
       max-width: 1100px;
       margin: 0 auto var(--gap);
     }
-    header h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+    header h1 { font-size: 1.6rem; margin-bottom: 0.25rem; white-space: nowrap; }
     header p   { color: var(--muted); }
 
     .header-row {
@@ -46,6 +46,16 @@
       flex-wrap: wrap;
       gap: 0.75rem;
     }
+    /* Header table layout keeps controls pinned to the right and prevents
+       the feed/GitHub buttons wrapping beneath the title on narrow widths. */
+    .header-table { width: 100%; border-collapse: collapse; }
+    .header-table td { vertical-align: top; }
+    /* Keep the title on a single line so it doesn't wrap above/below the controls */
+    .title-block { white-space: nowrap; }
+    /* Keep controls pinned to the right; spacer grows to fill middle space */
+    .controls-block { width: 1%; white-space: nowrap; }
+    .spacer-block { width: 100%; }
+    .controls { display:flex; gap:0.75rem; align-items:center; justify-content:flex-end; }
 
     .badges {
       display: flex;
@@ -68,7 +78,7 @@
       margin-right: 5px;
     }
     .dot-coverlet { background: var(--coverlet); }
-    .dot-mtp      { background: var(--mtp); }
+    .dot-mtecc      { background: var(--mtecc); }
 
     /* Toggle button */
     #toggle-btn {
@@ -111,7 +121,7 @@
     .metric label { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
     .metric .val { font-size: 2rem; font-weight: 700; }
     .metric.coverlet .val { color: var(--coverlet); }
-    .metric.mtp      .val { color: var(--mtp); }
+    .metric.mtecc      .val { color: var(--mtecc); }
 
     /* Delta pill */
     .delta {
@@ -123,7 +133,7 @@
       font-weight: 600;
       cursor: help;
     }
-    .delta.pos { background: rgba(63,185,80,.15); color: var(--mtp); }
+    .delta.pos { background: rgba(63,185,80,.15); color: var(--mtecc); }
     .delta.neg { background: rgba(248,81,73,.15);  color: #f85149; }
     .delta.neu { background: rgba(139,148,158,.1); color: var(--muted); }
 
@@ -161,7 +171,7 @@
     tr:hover td { background: rgba(255,255,255,.02); }
 
     .coverlet-col { color: var(--coverlet); font-family: monospace; }
-    .mtp-col      { color: var(--mtp);      font-family: monospace; }
+    .mtecc-col      { color: var(--mtecc);      font-family: monospace; }
 
     /* History chart */
     #history-chart {
@@ -194,54 +204,70 @@
       color: var(--warn);
     }
   </style>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 </head>
 <body>
 
 <header>
-  <div class="header-row">
-    <div>
-      <h1>Coverage Showdown</h1>
-      <p>
-        Coverlet vs Microsoft Testing Platform (MTP) code coverage -
-        running against <a href="https://github.com/Humanizr/Humanizer" target="_blank">Humanizr/Humanizer</a> main branch
-      </p>
-    </div>
-    <button id="toggle-btn" title="Swap which tool is treated as the baseline for deltas">
-      <span class="arrow">⇄</span>
-      <span id="toggle-label">Coverlet → MTP</span>
-    </button>
-    <a href="https://github.com/PureKrome/codecoverage-showdown" target="_blank"
-       title="View source on GitHub"
-       style="display:flex;align-items:center;gap:0.4rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:0.4rem 0.9rem;font-size:13px;color:var(--text);text-decoration:none;margin-top:0.25rem;">
-      <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
-                 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
-                 -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
-                 .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
-                 -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27
-                 .68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
-                 .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
-                 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-      </svg>
-      GitHub
-    </a>
-    <a href="feed.xml" target="_blank"
-       title="Subscribe via Atom feed"
-       style="display:flex;align-items:center;gap:0.4rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:0.4rem 0.9rem;font-size:13px;color:var(--text);text-decoration:none;margin-top:0.25rem;">
-      <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-        <circle cx="2.5" cy="13.5" r="1.5"/>
-        <path d="M1 6.5a.5.5 0 0 1 .5-.5C7.299 6 10 8.701 10 14.5a.5.5 0 0 1-1 0C9 9.253 6.747 7 1.5 7a.5.5 0 0 1-.5-.5z"/>
-        <path d="M1 2.5a.5.5 0 0 1 .5-.5C9.053 2 14 6.947 14 14.5a.5.5 0 0 1-1 0C13 7.5 8.5 3 1.5 3a.5.5 0 0 1-.5-.5z"/>
-      </svg>
-      Feed
-    </a>
-  </div>
-  <div class="badges" id="badges">
-    <span class="badge"><span class="dot dot-coverlet"></span>Coverlet loading...</span>
-    <span class="badge"><span class="dot dot-mtp"></span>MTP loading...</span>
-    <span class="badge" id="badge-run">Last run: loading...</span>
-    <span class="badge" id="badge-sha">Humanizer: loading...</span>
-  </div>
+  <table class="header-table">
+    <tr>
+      <td class="title-block">
+        <h1>Coverage Showdown</h1>
+      </td>
+      <td class="spacer-block"></td>
+      <td class="controls-block">
+        <div class="controls">
+          <button id="toggle-btn" title="Swap which tool is treated as the baseline for deltas">
+            <span class="arrow">⇄</span>
+            <span id="toggle-label">Coverlet → MTECC</span>
+          </button>
+          <a href="https://github.com/PureKrome/codecoverage-showdown" target="_blank"
+             title="View source on GitHub"
+             style="display:flex;align-items:center;gap:0.4rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:0.4rem 0.9rem;font-size:13px;color:var(--text);text-decoration:none;">
+            <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+                       0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+                       -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
+                       .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
+                       -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27
+                       .68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
+                       .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
+                       0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            GitHub
+          </a>
+          <a href="feed.xml" target="_blank"
+             title="Subscribe via Atom feed"
+             style="display:flex;align-items:center;gap:0.4rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:0.4rem 0.9rem;font-size:13px;color:var(--text);text-decoration:none;">
+            <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <circle cx="2.5" cy="13.5" r="1.5"/>
+              <path d="M1 6.5a.5.5 0 0 1 .5-.5C7.299 6 10 8.701 10 14.5a.5.5 0 0 1-1 0C9 9.253 6.747 7 1.5 7a.5.5 0 0 1-.5-.5z"/>
+              <path d="M1 2.5a.5.5 0 0 1 .5-.5C9.053 2 14 6.947 14 14.5a.5.5 0 0 1-1 0C13 7.5 8.5 3 1.5 3a.5.5 0 0 1-.5-.5z"/>
+            </svg>
+            Feed
+          </a>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td class="subtitle-block" colspan="3">
+        <p>
+          Coverlet vs Microsoft Testing Extensions Code Coverage (MTECC) -
+          running against <a href="https://github.com/Humanizr/Humanizer" target="_blank">Humanizr/Humanizer</a> main branch
+        </p>
+        <div class="badges" id="badges">
+          <span class="badge"><span class="dot dot-coverlet"></span>Coverlet loading...</span>
+          <span class="badge"><span class="dot dot-mtecc"></span>MTECC loading...</span>
+          <span class="badge" id="badge-run">Last run: loading...</span>
+          <span class="badge" id="badge-sha">Humanizer: loading...</span>
+        </div>
+      </td>
+    </tr>
+  </table>
 </header>
 
 <main>
@@ -261,7 +287,7 @@
         <div class="metrics" id="metrics-a"></div>
       </div>
       <div class="card" id="card-b">
-        <h2 id="card-b-title">Microsoft Testing Platform</h2>
+      <h2 id="card-b-title">Microsoft Testing Extensions Code Coverage</h2>
         <div class="metrics" id="metrics-b"></div>
       </div>
     </div>
@@ -272,9 +298,9 @@
         <thead>
           <tr>
             <th>Metric</th>
-            <th id="summary-th-a">Coverlet</th>
-            <th id="summary-th-b">MTP</th>
-            <th id="summary-th-delta">Delta (MTP − Coverlet)</th>
+          <th id="summary-th-a">Coverlet</th>
+            <th id="summary-th-b">MTECC</th>
+            <th id="summary-th-delta">Delta (MTECC − Coverlet)</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -286,27 +312,9 @@
       Hover any delta pill for the raw values.
     </p>
 
-    <div class="section-title" style="margin-top: 1.5rem;">Per-package breakdown</div>
-    <div class="card">
-      <table id="pkg-table">
-        <thead>
-          <tr>
-            <th>Package</th>
-            <th id="pkg-th-a-line">Coverlet Line</th>
-            <th id="pkg-th-a-branch">Coverlet Branch</th>
-            <th id="pkg-th-b-line">MTP Line</th>
-            <th id="pkg-th-b-branch">MTP Branch</th>
-            <th>Line Delta</th>
-            <th>Branch Delta</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
     <div class="section-title">Top file-level differences (line rate)</div>
     <div class="note">
-      Files where Coverlet and MTP report a different line rate, ordered by largest absolute
+      Files where Coverlet and MTECC report a different line rate, ordered by largest absolute
       difference. Only files present in both reports are shown. A positive delta means the
       second tool covers more lines in that file; negative means the first tool covers more.
     </div>
@@ -315,10 +323,10 @@
         <thead>
           <tr>
             <th>File</th>
-            <th id="file-th-a-lines">Coverlet lines</th>
-            <th id="file-th-b-lines">MTP lines</th>
+      <th id="file-th-a-lines">Coverlet lines</th>
+            <th id="file-th-b-lines">MTECC lines</th>
             <th id="file-th-a-rate">Coverlet rate</th>
-            <th id="file-th-b-rate">MTP rate</th>
+            <th id="file-th-b-rate">MTECC rate</th>
             <th>Delta</th>
           </tr>
         </thead>
@@ -342,7 +350,7 @@
 
 <footer>
   <p>Source: <a href="https://github.com/coverlet-coverage/coverlet" target="_blank">Coverlet</a> |
-     <a href="https://learn.microsoft.com/en-us/dotnet/core/testing/microsoft-testing-platform-code-coverage" target="_blank">MTP Code Coverage</a> |
+      <a href="https://learn.microsoft.com/en-us/dotnet/core/testing/microsoft-testing-platform-code-coverage" target="_blank">MTECC Code Coverage</a> |
      Data refreshed nightly via GitHub Actions.</p>
 </footer>
 
@@ -366,12 +374,12 @@
   document.getElementById('loading').style.display = 'none';
   document.getElementById('content').style.display = 'block';
 
-  const { latest, packageComparisons, fileDiffs } = data;
+  const { latest, fileDiffs } = data;
 
   // Badges (static — not affected by toggle)
-  document.getElementById('badges').innerHTML = `
+    document.getElementById('badges').innerHTML = `
     <span class="badge"><span class="dot dot-coverlet"></span>Coverlet ${latest.coverlet.version}</span>
-    <span class="badge"><span class="dot dot-mtp"></span>MTP ${latest.mtp.version}</span>
+    <span class="badge"><span class="dot dot-mtecc"></span>MTECC ${latest.mtecc.version}</span>
     <span class="badge">Last run: ${fmtDate(latest.runAt)}</span>
     <span class="badge">Humanizer @ ${latest.humanizerSha}</span>
   `;
@@ -386,18 +394,18 @@
       colClass:  'coverlet-col',
       data:      latest.coverlet,
     },
-    mtp: {
-      key:       'mtp',
-      label:     'Microsoft Testing Platform',
-      shortLabel:'MTP',
-      cssClass:  'mtp',
-      colClass:  'mtp-col',
-      data:      latest.mtp,
+    mtecc: {
+      key:       'mtecc',
+      label:     'Microsoft Testing Extensions Code Coverage',
+      shortLabel:'MTECC',
+      cssClass:  'mtecc',
+      colClass:  'mtecc-col',
+      data:      latest.mtecc,
     },
   };
 
   let toolA = tools.coverlet;
-  let toolB = tools.mtp;
+  let toolB = tools.mtecc;
 
   function render() {
     // Toggle button label
@@ -434,31 +442,7 @@
         </tr>`);
     });
 
-    // Package table headers
-    document.getElementById('pkg-th-a-line').textContent   = `${toolA.shortLabel} Line`;
-    document.getElementById('pkg-th-a-branch').textContent = `${toolA.shortLabel} Branch`;
-    document.getElementById('pkg-th-b-line').textContent   = `${toolB.shortLabel} Line`;
-    document.getElementById('pkg-th-b-branch').textContent = `${toolB.shortLabel} Branch`;
-
-    // Package table body
-    const pkgBody = document.querySelector('#pkg-table tbody');
-    pkgBody.innerHTML = '';
-    (packageComparisons ?? []).forEach(pkg => {
-      const aLine   = toolA.key === 'coverlet' ? pkg.coverletLine   : pkg.mtpLine;
-      const aBranch = toolA.key === 'coverlet' ? pkg.coverletBranch : pkg.mtpBranch;
-      const bLine   = toolB.key === 'coverlet' ? pkg.coverletLine   : pkg.mtpLine;
-      const bBranch = toolB.key === 'coverlet' ? pkg.coverletBranch : pkg.mtpBranch;
-      pkgBody.insertAdjacentHTML('beforeend', `
-        <tr>
-          <td style="font-family:monospace;font-size:12px">${pkg.name}</td>
-          <td class="${toolA.colClass}">${pctOrDash(aLine)}</td>
-          <td class="${toolA.colClass}">${pctOrDash(aBranch)}</td>
-          <td class="${toolB.colClass}">${pctOrDash(bLine)}</td>
-          <td class="${toolB.colClass}">${pctOrDash(bBranch)}</td>
-          <td>${aLine   != null && bLine   != null ? deltaPill(bLine   - aLine,   aLine,   bLine)   : '-'}</td>
-          <td>${aBranch != null && bBranch != null ? deltaPill(bBranch - aBranch, aBranch, bBranch) : '-'}</td>
-        </tr>`);
-    });
+    // Package breakdown removed (UI filters to Humanizer assembly only)
 
     // File diff table headers
     document.getElementById('file-th-a-lines').textContent = `${toolA.shortLabel} lines`;
@@ -467,7 +451,7 @@
     document.getElementById('file-th-b-rate').textContent  = `${toolB.shortLabel} rate`;
 
     // File diff table body
-    // The JSON always stores coverlet as "a" and mtp as "b"; flip if needed.
+    // The JSON always stores coverlet as "a" and mtecc as "b"; flip if needed.
     const diffs = fileDiffs ?? [];
     const fileDiffBody = document.querySelector('#filediff-table tbody');
     fileDiffBody.innerHTML = '';
@@ -479,12 +463,12 @@
       diffs.forEach(f => {
         const aLines   = toolA.key === 'coverlet'
           ? `${f.coverletLinesCovered}/${f.coverletLinesValid}`
-          : `${f.mtpLinesCovered}/${f.mtpLinesValid}`;
+          : `${f.mteccLinesCovered}/${f.mteccLinesValid}`;
         const bLines   = toolB.key === 'coverlet'
           ? `${f.coverletLinesCovered}/${f.coverletLinesValid}`
-          : `${f.mtpLinesCovered}/${f.mtpLinesValid}`;
-        const aRate    = toolA.key === 'coverlet' ? f.coverletLineRate : f.mtpLineRate;
-        const bRate    = toolB.key === 'coverlet' ? f.coverletLineRate : f.mtpLineRate;
+          : `${f.mteccLinesCovered}/${f.mteccLinesValid}`;
+        const aRate    = toolA.key === 'coverlet' ? f.coverletLineRate : f.mteccLineRate;
+        const bRate    = toolB.key === 'coverlet' ? f.coverletLineRate : f.mteccLineRate;
         const delta    = bRate - aRate;
         const shortName = f.fileName.replace(/^src\/Humanizer\//i, '');
         fileDiffBody.insertAdjacentHTML('beforeend', `
@@ -506,6 +490,8 @@
     // Always store which tool is A so the restore condition is unambiguous.
     localStorage.setItem('showdown-perspective', toolA.key);
     render();
+    // Re-render chart in the new perspective
+    renderChart(historyData.runs ?? [], toolA, toolB);
   });
 
   // Restore saved perspective — must run after toolA/toolB are initialised,
@@ -517,8 +503,8 @@
 
   render();
 
-  // History chart (not affected by toggle — shows both series always)
-  renderChart(historyData.runs ?? []);
+  // History chart (shows per-run delta between tools; affected by toggle)
+  renderChart(historyData.runs ?? [], toolA, toolB);
 })();
 
 function renderMetrics(containerId, tool, kind) {
@@ -559,9 +545,11 @@ function fmtDate(iso) {
   } catch { return iso; }
 }
 
-function renderChart(history) {
+function renderChart(history, toolAParam, toolBParam) {
   const canvas = document.getElementById('history-chart');
   const ctx    = canvas.getContext('2d');
+  const toolA = toolAParam || { key: 'coverlet', shortLabel: 'Coverlet' };
+  const toolB = toolBParam || { key: 'mtecc', shortLabel: 'MTECC' };
 
   const entries = [...history].reverse();
   if (entries.length < 2) {
@@ -581,14 +569,28 @@ function renderChart(history) {
   const chartW = W - PAD.left - PAD.right;
   const chartH = H - PAD.top  - PAD.bottom;
 
-  const cvLine = entries.map(e => e.coverlet.lineRate);
-  const mtLine = entries.map(e => e.mtp.lineRate);
-  const allVals = [...cvLine, ...mtLine];
-  const minV = Math.max(0,   Math.min(...allVals) - 0.02);
-  const maxV = Math.min(1.0, Math.max(...allVals) + 0.02);
+  // Compute per-run delta to plot according to the current perspective.
+  // RunEntry.LineDelta is stored as Coverlet - MTECC. The summary and tables show
+  // (toolB - toolA). We follow that same convention here so the chart aligns
+  // with the toggle: when perspective is Coverlet → MTECC (toolA=coverlet, toolB=mtecc)
+  // we plot (MTECC - Coverlet) which is -LineDelta. When perspective is reversed
+  // we plot LineDelta.
+  const deltaLine = entries.map(e => {
+    const raw = e.lineDelta ?? (e.coverlet && e.mtecc ? (e.coverlet.lineRate - e.mtecc.lineRate) : 0);
+    return toolA.key === 'coverlet' ? -raw : raw;
+  });
+
+  // Expressed as fraction (e.g., 0.01 == 1pp). For chart bounds, include a small padding.
+  const allVals = deltaLine;
+  const minV = Math.min(...allVals) - 0.01;
+  const maxV = Math.max(...allVals) + 0.01;
+  // Ensure a symmetric range around zero for clarity if values are small
+  const absMax = Math.max(Math.abs(minV), Math.abs(maxV), 0.01);
+  const plotMin = -absMax;
+  const plotMax = absMax;
 
   function xOf(i) { return PAD.left + (i / (entries.length - 1)) * chartW; }
-  function yOf(v) { return PAD.top + (1 - (v - minV) / (maxV - minV)) * chartH; }
+  function yOf(v) { return PAD.top + (1 - (v - plotMin) / (plotMax - plotMin)) * chartH; }
 
   // Grid lines
   ctx.strokeStyle = '#30363d';
@@ -603,6 +605,7 @@ function renderChart(history) {
     ctx.fillText((v * 100).toFixed(1) + '%', PAD.left - 6, y + 4);
   }
 
+  // Draw delta line (single series). Positive values mean toolB > toolA
   function drawLine(data, color) {
     ctx.beginPath();
     ctx.strokeStyle = color;
@@ -614,8 +617,8 @@ function renderChart(history) {
     ctx.stroke();
   }
 
-  drawLine(cvLine, getComputedStyle(document.documentElement).getPropertyValue('--coverlet').trim() || '#58a6ff');
-  drawLine(mtLine, getComputedStyle(document.documentElement).getPropertyValue('--mtp').trim()      || '#3fb950');
+  const curveColor = getComputedStyle(document.documentElement).getPropertyValue('--coverlet').trim() || '#58a6ff';
+  drawLine(deltaLine, curveColor);
 
   ctx.fillStyle  = '#8b949e';
   ctx.font       = '11px sans-serif';
@@ -629,19 +632,20 @@ function renderChart(history) {
     ctx.fillText(fmtShort(entries[entries.length - 1].runAt), xOf(entries.length-1), H - 10);
   }
 
+  // Legend: indicate that positive values mean toolB > toolA
   const legendY = H - 8;
-  const midX    = W / 2;
-  ctx.fillStyle  = '#58a6ff';
-  ctx.fillRect(midX - 80, legendY - 9, 16, 3);
+  ctx.fillStyle = curveColor;
+  ctx.fillRect(PAD.left, legendY - 9, 16, 3);
   ctx.fillStyle = '#e6edf3';
-  ctx.font      = '11px sans-serif';
+  ctx.font = '11px sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText('Coverlet', midX - 60, legendY);
+  ctx.fillText(`${toolB.shortLabel} higher → positive`, PAD.left + 20, legendY);
 
-  ctx.fillStyle = '#3fb950';
-  ctx.fillRect(midX + 20, legendY - 9, 16, 3);
-  ctx.fillStyle = '#e6edf3';
-  ctx.fillText('MTP', midX + 40, legendY);
+  // Draw zero baseline
+  ctx.strokeStyle = '#444c56';
+  ctx.lineWidth = 1;
+  const yZero = yOf(0);
+  ctx.beginPath(); ctx.moveTo(PAD.left, yZero); ctx.lineTo(PAD.left + chartW, yZero); ctx.stroke();
 }
 </script>
 

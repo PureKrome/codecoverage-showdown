@@ -13,9 +13,9 @@ internal static class ReportBuilder
 
     public static (OutputFile Output, HistoryFile History) Build(
         CoberturaReport coverletReport,
-        CoberturaReport mtpReport,
+        CoberturaReport mteccReport,
         string coverletVersion,
-        string mtpVersion,
+        string mteccVersion,
         string humanizerSha,
         HistoryFile existingHistory)
     {
@@ -30,14 +30,19 @@ internal static class ReportBuilder
                 BranchRate = coverletReport.Summary.BranchRate,
                 MethodRate = coverletReport.Summary.MethodRate,
             },
-            Mtp = new ToolSummary
+            Mtecc = new ToolSummary
             {
-                Version = mtpVersion,
-                LineRate = mtpReport.Summary.LineRate,
-                BranchRate = mtpReport.Summary.BranchRate,
-                MethodRate = mtpReport.Summary.MethodRate,
+                Version = mteccVersion,
+                LineRate = mteccReport.Summary.LineRate,
+                BranchRate = mteccReport.Summary.BranchRate,
+                MethodRate = mteccReport.Summary.MethodRate,
             },
         };
+
+        // Compute deltas (Coverlet - MTECC) and round for stable reporting
+        runEntry.LineDelta = Math.Round(runEntry.Coverlet.LineRate - runEntry.Mtecc.LineRate, 4);
+        runEntry.BranchDelta = Math.Round(runEntry.Coverlet.BranchRate - runEntry.Mtecc.BranchRate, 4);
+        runEntry.MethodDelta = Math.Round(runEntry.Coverlet.MethodRate - runEntry.Mtecc.MethodRate, 4);
 
         // Prepend newest first, cap at max.
         var runs = new List<RunEntry>(existingHistory.Runs.Count + 1) { runEntry };
@@ -50,8 +55,8 @@ internal static class ReportBuilder
         var output = new OutputFile
         {
             Latest = runEntry,
-            PackageComparisons = BuildPackageComparisons(coverletReport, mtpReport),
-            FileDiffs = BuildFileDiffs(coverletReport, mtpReport),
+            PackageComparisons = BuildPackageComparisons(coverletReport, mteccReport),
+            FileDiffs = BuildFileDiffs(coverletReport, mteccReport),
         };
 
         var history = new HistoryFile { Runs = runs };
@@ -61,25 +66,25 @@ internal static class ReportBuilder
 
     private static List<PackageComparison> BuildPackageComparisons(
         CoberturaReport coverletReport,
-        CoberturaReport mtpReport)
+        CoberturaReport mteccReport)
     {
         var coverletPkgs = coverletReport.Packages.ToDictionary(p => p.Name, StringComparer.Ordinal);
-        var mtpPkgs = mtpReport.Packages.ToDictionary(p => p.Name, StringComparer.Ordinal);
-        var allPkgNames = coverletPkgs.Keys.Union(mtpPkgs.Keys).OrderBy(x => x).ToList();
+        var mteccPkgs = mteccReport.Packages.ToDictionary(p => p.Name, StringComparer.Ordinal);
+        var allPkgNames = coverletPkgs.Keys.Union(mteccPkgs.Keys).OrderBy(x => x).ToList();
 
         return allPkgNames.Select(name =>
         {
             coverletPkgs.TryGetValue(name, out var cv);
-            mtpPkgs.TryGetValue(name, out var mv);
+            mteccPkgs.TryGetValue(name, out var mv);
 
-            return new PackageComparison
-            {
-                Name = name,
-                CoverletLine = cv?.LineRate,
-                CoverletBranch = cv?.BranchRate,
-                MtpLine = mv?.LineRate,
-                MtpBranch = mv?.BranchRate,
-            };
+                return new PackageComparison
+                {
+                    Name = name,
+                    CoverletLine = cv?.LineRate,
+                    CoverletBranch = cv?.BranchRate,
+                    MteccLine = mv?.LineRate,
+                    MteccBranch = mv?.BranchRate,
+                };
         }).ToList();
     }
 
@@ -92,18 +97,18 @@ internal static class ReportBuilder
     /// </summary>
     private static List<FileDiff> BuildFileDiffs(
         CoberturaReport coverletReport,
-        CoberturaReport mtpReport)
+        CoberturaReport mteccReport)
     {
         var coverletFiles = coverletReport.Files.ToDictionary(f => f.FileName, StringComparer.OrdinalIgnoreCase);
-        var mtpFiles = mtpReport.Files.ToDictionary(f => f.FileName, StringComparer.OrdinalIgnoreCase);
+        var mteccFiles = mteccReport.Files.ToDictionary(f => f.FileName, StringComparer.OrdinalIgnoreCase);
 
-        var commonFiles = coverletFiles.Keys.Intersect(mtpFiles.Keys, StringComparer.OrdinalIgnoreCase);
+        var commonFiles = coverletFiles.Keys.Intersect(mteccFiles.Keys, StringComparer.OrdinalIgnoreCase);
 
         return commonFiles
             .Select(name =>
             {
                 var cv = coverletFiles[name];
-                var mv = mtpFiles[name];
+                var mv = mteccFiles[name];
                 var delta = Math.Round(mv.LineRate - cv.LineRate, 4);
 
                 return new FileDiff
@@ -111,10 +116,10 @@ internal static class ReportBuilder
                     FileName = name,
                     CoverletLinesValid = cv.LinesValid,
                     CoverletLinesCovered = cv.LinesCovered,
-                    MtpLinesValid = mv.LinesValid,
-                    MtpLinesCovered = mv.LinesCovered,
+                    MteccLinesValid = mv.LinesValid,
+                    MteccLinesCovered = mv.LinesCovered,
                     CoverletLineRate = cv.LineRate,
-                    MtpLineRate = mv.LineRate,
+                    MteccLineRate = mv.LineRate,
                     LineDelta = delta,
                 };
             })

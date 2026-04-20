@@ -1,6 +1,6 @@
 {
   "latest": {
-    "runAt": "2026-04-19T02:15:27.0424131Z",
+    "runAt": "2026-04-20T14:54:11.2110202Z",
     "humanizerSha": "123bb",
     "coverlet": {
       "version": "10.0",
@@ -8,20 +8,23 @@
       "branchRate": 0.8342,
       "methodRate": 0.6632789395293419
     },
-    "mtp": {
+    "mtecc": {
       "version": "18.6.2",
       "lineRate": 0.9099,
       "branchRate": 0.8568,
       "methodRate": 0.7117284125379167
-    }
+    },
+    "lineDelta": -0.0047,
+    "branchDelta": -0.0226,
+    "methodDelta": -0.0484
   },
   "packageComparisons": [
     {
       "name": "Humanizer",
       "coverletLine": 0.9052,
       "coverletBranch": 0.8342,
-      "mtpLine": 0.9099,
-      "mtpBranch": 0.8568
+      "mteccLine": 0.9099,
+      "mteccBranch": 0.8568
     }
   ],
   "fileDiffs": [
@@ -29,100 +32,100 @@
       "fileName": "src/Humanizer/Configuration/DateOnlyToOrdinalWordsConverterRegistry.cs",
       "coverletLinesValid": 4,
       "coverletLinesCovered": 4,
-      "mtpLinesValid": 6,
-      "mtpLinesCovered": 4,
+      "mteccLinesValid": 6,
+      "mteccLinesCovered": 4,
       "coverletLineRate": 1,
-      "mtpLineRate": 0.6667,
+      "mteccLineRate": 0.6667,
       "lineDelta": -0.3333
     },
     {
       "fileName": "src/Humanizer/Configuration/DateToOrdinalWordsConverterRegistry.cs",
       "coverletLinesValid": 4,
       "coverletLinesCovered": 4,
-      "mtpLinesValid": 6,
-      "mtpLinesCovered": 4,
+      "mteccLinesValid": 6,
+      "mteccLinesCovered": 4,
       "coverletLineRate": 1,
-      "mtpLineRate": 0.6667,
+      "mteccLineRate": 0.6667,
       "lineDelta": -0.3333
     },
     {
       "fileName": "src/Humanizer/Configuration/TimeOnlyToClockNotationConvertersRegistry.cs",
       "coverletLinesValid": 4,
       "coverletLinesCovered": 4,
-      "mtpLinesValid": 6,
-      "mtpLinesCovered": 4,
+      "mteccLinesValid": 6,
+      "mteccLinesCovered": 4,
       "coverletLineRate": 1,
-      "mtpLineRate": 0.6667,
+      "mteccLineRate": 0.6667,
       "lineDelta": -0.3333
     },
     {
       "fileName": "src/Humanizer/Transformer/To.cs",
       "coverletLinesValid": 4,
       "coverletLinesCovered": 2,
-      "mtpLinesValid": 16,
-      "mtpLinesCovered": 12,
+      "mteccLinesValid": 16,
+      "mteccLinesCovered": 12,
       "coverletLineRate": 0.5,
-      "mtpLineRate": 0.75,
+      "mteccLineRate": 0.75,
       "lineDelta": 0.25
     },
     {
       "fileName": "src/Humanizer/Localisation/CollectionFormatters/DelimitedCollectionFormatter.cs",
       "coverletLinesValid": 56,
       "coverletLinesCovered": 44,
-      "mtpLinesValid": 64,
-      "mtpLinesCovered": 46,
+      "mteccLinesValid": 64,
+      "mteccLinesCovered": 46,
       "coverletLineRate": 0.7857,
-      "mtpLineRate": 0.7188,
+      "mteccLineRate": 0.7188,
       "lineDelta": -0.0669
     },
     {
       "fileName": "src/Humanizer/Localisation/CollectionFormatters/CliticCollectionFormatter.cs",
       "coverletLinesValid": 84,
       "coverletLinesCovered": 68,
-      "mtpLinesValid": 84,
-      "mtpLinesCovered": 64,
+      "mteccLinesValid": 84,
+      "mteccLinesCovered": 64,
       "coverletLineRate": 0.8095,
-      "mtpLineRate": 0.7619,
+      "mteccLineRate": 0.7619,
       "lineDelta": -0.0476
     },
     {
       "fileName": "src/Humanizer/Localisation/Ordinalizers/WordFormTemplateOrdinalizer.cs",
       "coverletLinesValid": 96,
       "coverletLinesCovered": 82,
-      "mtpLinesValid": 122,
-      "mtpLinesCovered": 108,
+      "mteccLinesValid": 122,
+      "mteccLinesCovered": 108,
       "coverletLineRate": 0.8542,
-      "mtpLineRate": 0.8852,
+      "mteccLineRate": 0.8852,
       "lineDelta": 0.031
     },
     {
       "fileName": "src/Humanizer/Localisation/WordsToNumber/SuffixScaleWordsToNumberConverter.cs",
       "coverletLinesValid": 340,
       "coverletLinesCovered": 186,
-      "mtpLinesValid": 356,
-      "mtpLinesCovered": 202,
+      "mteccLinesValid": 356,
+      "mteccLinesCovered": 202,
       "coverletLineRate": 0.5471,
-      "mtpLineRate": 0.5674,
+      "mteccLineRate": 0.5674,
       "lineDelta": 0.0203
     },
     {
       "fileName": "src/Humanizer/Configuration/Configurator.cs",
       "coverletLinesValid": 64,
       "coverletLinesCovered": 60,
-      "mtpLinesValid": 90,
-      "mtpLinesCovered": 86,
+      "mteccLinesValid": 90,
+      "mteccLinesCovered": 86,
       "coverletLineRate": 0.9375,
-      "mtpLineRate": 0.9556,
+      "mteccLineRate": 0.9556,
       "lineDelta": 0.0181
     },
     {
       "fileName": "src/Humanizer/Configuration/LocaliserRegistry.cs",
       "coverletLinesValid": 124,
       "coverletLinesCovered": 124,
-      "mtpLinesValid": 133,
-      "mtpLinesCovered": 131,
+      "mteccLinesValid": 133,
+      "mteccLinesCovered": 131,
       "coverletLineRate": 1,
-      "mtpLineRate": 0.985,
+      "mteccLineRate": 0.985,
       "lineDelta": -0.015
     }
   ]
