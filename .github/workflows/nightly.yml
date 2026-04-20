@@ -3,7 +3,12 @@ name: Nightly Coverage Showdown
 on:
   schedule:
     - cron: '0 2 * * *'   # 2am UTC daily
-  workflow_dispatch:       # allow manual trigger
+  workflow_dispatch:
+    inputs:
+      humanizer_commit:
+        description: 'Optional commit SHA to check out in Humanizer. If empty, the workflow will clone main shallowly.'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -16,6 +21,9 @@ jobs:
   # ---------------------------------------------------------------------------
   prepare:
     runs-on: ubuntu-latest
+    env:
+      # Prefer the manual input when provided, otherwise fall back to a repo-level Actions variable (vars.HUMANIZER_COMMIT)
+      HUMANIZER_COMMIT: ${{ github.event.inputs.humanizer_commit != '' && github.event.inputs.humanizer_commit || vars.HUMANIZER_COMMIT }}
     outputs:
       changed:       ${{ steps.version_check.outputs.changed }}
       coverlet_ver:  ${{ steps.versions.outputs.coverlet_ver }}
@@ -31,7 +39,36 @@ jobs:
       - name: Clone Humanizer (main)
         id: clone
         run: |
-          git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer
+          echo "HUMANIZER_COMMIT=${HUMANIZER_COMMIT:-<not set>}"
+          if [ -n "${HUMANIZER_COMMIT}" ]; then
+            echo "Cloning Humanizer and attempting to check out commit ${HUMANIZER_COMMIT}"
+            # Try a minimal shallow clone and fetch the commit with increasing depth to avoid a full clone when possible
+            git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer || true
+            if git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null 2>&1; then
+              git -C humanizer checkout --detach "${HUMANIZER_COMMIT}"
+            else
+              echo "Commit not present in depth=1 clone; trying fetch --depth=50"
+              git -C humanizer fetch --depth=50 origin "${HUMANIZER_COMMIT}" || true
+              if git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null 2>&1; then
+                git -C humanizer checkout --detach "${HUMANIZER_COMMIT}"
+              else
+                echo "Still not found; performing full clone as fallback"
+                rm -rf humanizer
+                git clone https://github.com/Humanizr/Humanizer.git humanizer
+                git -C humanizer checkout --detach "${HUMANIZER_COMMIT}" || true
+              fi
+            fi
+
+            if ! git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null; then
+              echo "ERROR: Requested HUMANIZER_COMMIT '${HUMANIZER_COMMIT}' was not found in the repository."
+              echo "Ensure the SHA is valid for https://github.com/Humanizr/Humanizer or leave the field empty to use main."
+              exit 1
+            fi
+          else
+            echo "No HUMANIZER_COMMIT provided - cloning main (shallow)"
+            git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer
+          fi
+
           echo "humanizer_sha=$(git -C humanizer rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Resolve latest package versions
@@ -87,6 +124,8 @@ jobs:
     if: needs.prepare.outputs.changed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      HUMANIZER_COMMIT: ${{ github.event.inputs.humanizer_commit != '' && github.event.inputs.humanizer_commit || vars.HUMANIZER_COMMIT }}
 
     steps:
       - name: Checkout showdown repo
@@ -99,7 +138,33 @@ jobs:
 
       - name: Clone Humanizer (main)
         run: |
-          git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer
+          echo "HUMANIZER_COMMIT=${HUMANIZER_COMMIT:-<not set>}"
+          if [ -n "${HUMANIZER_COMMIT}" ]; then
+            echo "Cloning Humanizer and attempting to check out commit ${HUMANIZER_COMMIT}"
+            git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer || true
+            if git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null 2>&1; then
+              git -C humanizer checkout --detach "${HUMANIZER_COMMIT}"
+            else
+              echo "Commit not present in depth=1 clone; trying fetch --depth=50"
+              git -C humanizer fetch --depth=50 origin "${HUMANIZER_COMMIT}" || true
+              if git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null 2>&1; then
+                git -C humanizer checkout --detach "${HUMANIZER_COMMIT}"
+              else
+                echo "Still not found; performing full clone as fallback"
+                rm -rf humanizer
+                git clone https://github.com/Humanizr/Humanizer.git humanizer
+                git -C humanizer checkout --detach "${HUMANIZER_COMMIT}" || true
+              fi
+            fi
+
+            if ! git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null; then
+              echo "ERROR: Requested HUMANIZER_COMMIT '${HUMANIZER_COMMIT}' was not found in the repository."
+              exit 1
+            fi
+          else
+            echo "No HUMANIZER_COMMIT provided - cloning main (shallow)"
+            git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer
+          fi
 
       - name: Run Coverlet coverage
         run: |
@@ -124,6 +189,8 @@ jobs:
     if: needs.prepare.outputs.changed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      HUMANIZER_COMMIT: ${{ github.event.inputs.humanizer_commit != '' && github.event.inputs.humanizer_commit || vars.HUMANIZER_COMMIT }}
 
     steps:
       - name: Checkout showdown repo
@@ -136,7 +203,33 @@ jobs:
 
       - name: Clone Humanizer (main)
         run: |
-          git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer
+          echo "HUMANIZER_COMMIT=${HUMANIZER_COMMIT:-<not set>}"
+          if [ -n "${HUMANIZER_COMMIT}" ]; then
+            echo "Cloning Humanizer and attempting to check out commit ${HUMANIZER_COMMIT}"
+            git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer || true
+            if git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null 2>&1; then
+              git -C humanizer checkout --detach "${HUMANIZER_COMMIT}"
+            else
+              echo "Commit not present in depth=1 clone; trying fetch --depth=50"
+              git -C humanizer fetch --depth=50 origin "${HUMANIZER_COMMIT}" || true
+              if git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null 2>&1; then
+                git -C humanizer checkout --detach "${HUMANIZER_COMMIT}"
+              else
+                echo "Still not found; performing full clone as fallback"
+                rm -rf humanizer
+                git clone https://github.com/Humanizr/Humanizer.git humanizer
+                git -C humanizer checkout --detach "${HUMANIZER_COMMIT}" || true
+              fi
+            fi
+
+            if ! git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null; then
+              echo "ERROR: Requested HUMANIZER_COMMIT '${HUMANIZER_COMMIT}' was not found in the repository."
+              exit 1
+            fi
+          else
+            echo "No HUMANIZER_COMMIT provided - cloning main (shallow)"
+            git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer
+          fi
 
       - name: Run MTP coverage
         run: |
@@ -160,6 +253,8 @@ jobs:
     needs: [prepare, run-coverlet, run-mtp]
     if: needs.prepare.outputs.changed == 'true'
     runs-on: ubuntu-latest
+    env:
+      HUMANIZER_COMMIT: ${{ github.event.inputs.humanizer_commit != '' && github.event.inputs.humanizer_commit || vars.HUMANIZER_COMMIT }}
 
     steps:
       - name: Checkout showdown repo
