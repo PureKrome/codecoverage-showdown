@@ -201,7 +201,7 @@ jobs:
   # ---------------------------------------------------------------------------
   # 2b. Run MTECC coverage (parallel)
   # ---------------------------------------------------------------------------
-    run-mtecc:
+  run-mtecc:
     needs: prepare
     if: needs.prepare.outputs.changed == 'true'
     runs-on: ubuntu-latest
@@ -258,11 +258,11 @@ jobs:
       - name: Run MTECC coverage
         run: |
           mkdir -p results
-           chmod +x runners/mtecc.sh
-           bash runners/mtecc.sh \
-             humanizer \
-             "${{ needs.prepare.outputs.mtecc_ver }}" \
-             results/mtecc.cobertura.xml
+          chmod +x runners/mtecc.sh
+          bash runners/mtecc.sh \
+            humanizer \
+            "${{ needs.prepare.outputs.mtecc_ver }}" \
+            results/mtecc.cobertura.xml
 
       - name: Upload MTECC result
         uses: actions/upload-artifact@v7
