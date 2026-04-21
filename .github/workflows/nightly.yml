@@ -142,8 +142,25 @@ jobs:
             "${{ needs.prepare.outputs.coverlet_ver }}" \
             results/coverlet.cobertura.xml
 
+      - name: List results (diagnostic)
+        run: |
+          echo "-- workspace: $(pwd) --"
+          echo "-- results dir --"
+          ls -la results || true
+          echo "-- humanizer artifacts (root of humanizer) --"
+          ls -la humanizer || true
+          echo "-- show copied file --"
+          if [ -f results/coverlet.cobertura.xml ]; then
+            echo "coverlet file exists:" && ls -lh results/coverlet.cobertura.xml
+            wc -c results/coverlet.cobertura.xml || true
+          else
+            echo "coverlet output missing"
+            find . -maxdepth 4 -name "*.cobertura*.xml" -print || true
+            exit 1
+          fi
+
       - name: Upload Coverlet result
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v8
         with:
           name: coverlet-result
           path: results/coverlet.cobertura.xml
@@ -191,8 +208,25 @@ jobs:
             "${{ needs.prepare.outputs.mtecc_ver }}" \
             results/mtecc.cobertura.xml
 
+      - name: List results (diagnostic)
+        run: |
+          echo "-- workspace: $(pwd) --"
+          echo "-- results dir --"
+          ls -la results || true
+          echo "-- humanizer artifacts (root of humanizer) --"
+          ls -la humanizer || true
+          echo "-- show copied file --"
+          if [ -f results/mtecc.cobertura.xml ]; then
+            echo "mtecc file exists:" && ls -lh results/mtecc.cobertura.xml
+            wc -c results/mtecc.cobertura.xml || true
+          else
+            echo "mtecc output missing"
+            find . -maxdepth 4 -name "*.cobertura*.xml" -print || true
+            exit 1
+          fi
+
       - name: Upload MTECC result
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v8
         with:
           name: mtecc-result
           path: results/mtecc.cobertura.xml
