@@ -1,3 +1,23 @@
 {
-  "runs": []
+  "runs": [
+    {
+      "runAt": "2026-04-21T10:00:50.2608094Z",
+      "humanizerSha": "f3d30ee4",
+      "coverlet": {
+        "version": "",
+        "lineRate": 0.9052,
+        "branchRate": 0.8342,
+        "methodRate": 0.6632789395293419
+      },
+      "mtecc": {
+        "version": "",
+        "lineRate": 0.9099,
+        "branchRate": 0.8568,
+        "methodRate": 0.7117284125379167
+      },
+      "lineDelta": -0.0047,
+      "branchDelta": -0.0226,
+      "methodDelta": -0.0484
+    }
+  ]
 }
