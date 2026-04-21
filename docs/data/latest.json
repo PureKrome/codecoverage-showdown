@@ -1,15 +1,15 @@
 {
   "latest": {
-    "runAt": "2026-04-21T10:03:46.5178285Z",
-    "humanizerSha": "f3d30ee4",
+    "runAt": "2026-04-21T13:59:59.1155021Z",
+    "humanizerSha": "deadbeef",
     "coverlet": {
-      "version": "",
+      "version": "coverlet-version",
       "lineRate": 0.9052,
       "branchRate": 0.8342,
       "methodRate": 0.6632789395293419
     },
     "mtecc": {
-      "version": "",
+      "version": "mtecc-version",
       "lineRate": 0.9099,
       "branchRate": 0.8568,
       "methodRate": 0.7117284125379167
@@ -27,5 +27,106 @@
       "mteccBranch": 0.8568
     }
   ],
-  "fileDiffs": []
+  "fileDiffs": [
+    {
+      "fileName": "Configuration/DateOnlyToOrdinalWordsConverterRegistry.cs",
+      "coverletLinesValid": 4,
+      "coverletLinesCovered": 4,
+      "mteccLinesValid": 6,
+      "mteccLinesCovered": 4,
+      "coverletLineRate": 1,
+      "mteccLineRate": 0.6667,
+      "lineDelta": -0.3333
+    },
+    {
+      "fileName": "Configuration/DateToOrdinalWordsConverterRegistry.cs",
+      "coverletLinesValid": 4,
+      "coverletLinesCovered": 4,
+      "mteccLinesValid": 6,
+      "mteccLinesCovered": 4,
+      "coverletLineRate": 1,
+      "mteccLineRate": 0.6667,
+      "lineDelta": -0.3333
+    },
+    {
+      "fileName": "Configuration/TimeOnlyToClockNotationConvertersRegistry.cs",
+      "coverletLinesValid": 4,
+      "coverletLinesCovered": 4,
+      "mteccLinesValid": 6,
+      "mteccLinesCovered": 4,
+      "coverletLineRate": 1,
+      "mteccLineRate": 0.6667,
+      "lineDelta": -0.3333
+    },
+    {
+      "fileName": "Transformer/To.cs",
+      "coverletLinesValid": 4,
+      "coverletLinesCovered": 2,
+      "mteccLinesValid": 16,
+      "mteccLinesCovered": 12,
+      "coverletLineRate": 0.5,
+      "mteccLineRate": 0.75,
+      "lineDelta": 0.25
+    },
+    {
+      "fileName": "Localisation/CollectionFormatters/DelimitedCollectionFormatter.cs",
+      "coverletLinesValid": 56,
+      "coverletLinesCovered": 44,
+      "mteccLinesValid": 64,
+      "mteccLinesCovered": 46,
+      "coverletLineRate": 0.7857,
+      "mteccLineRate": 0.7188,
+      "lineDelta": -0.0669
+    },
+    {
+      "fileName": "Localisation/CollectionFormatters/CliticCollectionFormatter.cs",
+      "coverletLinesValid": 84,
+      "coverletLinesCovered": 68,
+      "mteccLinesValid": 84,
+      "mteccLinesCovered": 64,
+      "coverletLineRate": 0.8095,
+      "mteccLineRate": 0.7619,
+      "lineDelta": -0.0476
+    },
+    {
+      "fileName": "Localisation/Ordinalizers/WordFormTemplateOrdinalizer.cs",
+      "coverletLinesValid": 96,
+      "coverletLinesCovered": 82,
+      "mteccLinesValid": 122,
+      "mteccLinesCovered": 108,
+      "coverletLineRate": 0.8542,
+      "mteccLineRate": 0.8852,
+      "lineDelta": 0.031
+    },
+    {
+      "fileName": "Localisation/WordsToNumber/SuffixScaleWordsToNumberConverter.cs",
+      "coverletLinesValid": 340,
+      "coverletLinesCovered": 186,
+      "mteccLinesValid": 356,
+      "mteccLinesCovered": 202,
+      "coverletLineRate": 0.5471,
+      "mteccLineRate": 0.5674,
+      "lineDelta": 0.0203
+    },
+    {
+      "fileName": "Configuration/Configurator.cs",
+      "coverletLinesValid": 64,
+      "coverletLinesCovered": 60,
+      "mteccLinesValid": 90,
+      "mteccLinesCovered": 86,
+      "coverletLineRate": 0.9375,
+      "mteccLineRate": 0.9556,
+      "lineDelta": 0.0181
+    },
+    {
+      "fileName": "Configuration/LocaliserRegistry.cs",
+      "coverletLinesValid": 124,
+      "coverletLinesCovered": 124,
+      "mteccLinesValid": 133,
+      "mteccLinesCovered": 131,
+      "coverletLineRate": 1,
+      "mteccLineRate": 0.985,
+      "lineDelta": -0.015
+    }
+  ]
 }

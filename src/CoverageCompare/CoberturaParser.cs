@@ -136,13 +136,32 @@ internal static class CoberturaParser
     /// <summary>
     /// Strips absolute path prefix, keeping only the part from "src/" onward.
     /// e.g. "/tmp/clone/src/Humanizer/Foo.cs" → "src/Humanizer/Foo.cs"
-    /// Falls back to just the filename if "src/" is not found.
+    /// Falls back to a relative path (preserving any directory segments) if "src/" is not found.
     /// </summary>
     private static string NormaliseFileName(string raw)
     {
-        var normalised = raw.Replace('\\', '/');
+        var normalised = raw.Replace('\\', '/').Trim();
+
+        // Prefer returning the path relative to the Humanizer source tree when available.
+        // e.g. "/.../src/Humanizer/Bytes/ByteRate.cs" -> "Bytes/ByteRate.cs"
+        var marker = "src/Humanizer/";
+        var idx = normalised.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+        if (idx >= 0)
+        {
+            return normalised[(idx + marker.Length)..].TrimStart('/');
+        }
+
+        // If src/Humanizer isn't present, but src/ is, strip the leading src/ and keep the
+        // remainder (e.g. ".../src/Some/Path.cs" -> "Some/Path.cs").
         var srcIdx = normalised.IndexOf("src/", StringComparison.OrdinalIgnoreCase);
-        return srcIdx >= 0 ? normalised[srcIdx..] : Path.GetFileName(normalised);
+        if (srcIdx >= 0)
+        {
+            return normalised[(srcIdx + "src/".Length)..].TrimStart('/');
+        }
+
+        // Otherwise return the path as-is (preserving directory segments) so
+        // "Bytes/ByteRate.cs" stays "Bytes/ByteRate.cs" rather than just "ByteRate.cs".
+        return normalised.TrimStart('/');
     }
 
     /// <summary>Parses "50% (1/2)" → covered=1, total=2.</summary>
