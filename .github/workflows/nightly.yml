@@ -114,11 +114,6 @@ jobs:
       - name: Checkout showdown repo
         uses: actions/checkout@v6
 
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: '10.x'
-
       - name: Clone Humanizer (main)
         run: |
           echo "HUMANIZER_COMMIT=${HUMANIZER_COMMIT:-<not set>}"
@@ -133,6 +128,12 @@ jobs:
             git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer
           fi
 
+      - name: Setup .NET (from humanizer/global.json)
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: humanizer/global.json
+          include-prerelease: true
+
       - name: Run Coverlet coverage
         run: |
           mkdir -p results
@@ -140,7 +141,7 @@ jobs:
           bash runners/coverlet.sh \
             humanizer \
             "${{ needs.prepare.outputs.coverlet_ver }}" \
-            results/coverlet.cobertura.xml
+            ../results/coverlet.cobertura.xml
 
       - name: List results (diagnostic)
         run: |
@@ -180,11 +181,6 @@ jobs:
       - name: Checkout showdown repo
         uses: actions/checkout@v6
 
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: '10.x'
-
       - name: Clone Humanizer (main)
         run: |
           echo "HUMANIZER_COMMIT=${HUMANIZER_COMMIT:-<not set>}"
@@ -199,6 +195,12 @@ jobs:
             git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer
           fi
 
+      - name: Setup .NET (from humanizer/global.json)
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: humanizer/global.json
+          include-prerelease: true
+
       - name: Run MTECC coverage
         run: |
           mkdir -p results
@@ -206,7 +208,7 @@ jobs:
           bash runners/mtecc.sh \
             humanizer \
             "${{ needs.prepare.outputs.mtecc_ver }}" \
-            results/mtecc.cobertura.xml
+            ../results/mtecc.cobertura.xml
 
       - name: List results (diagnostic)
         run: |
@@ -247,8 +249,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup .NET (via global.json)
+      - name: Setup .NET (from repo global.json)
         uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          include-prerelease: true
 
       - name: Download Coverlet result
         uses: actions/download-artifact@v8
