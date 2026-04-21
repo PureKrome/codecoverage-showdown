@@ -300,7 +300,7 @@
             <th>Metric</th>
           <th id="summary-th-a">Coverlet</th>
             <th id="summary-th-b">MTECC</th>
-            <th id="summary-th-delta">Delta (MTECC − Coverlet)</th>
+            <th id="summary-th-delta">Delta (Coverlet − MTECC)</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -316,7 +316,7 @@
     <div class="note">
       Files where Coverlet and MTECC report a different line rate, ordered by largest absolute
       difference. Only files present in both reports are shown. A positive delta means the
-      second tool covers more lines in that file; negative means the first tool covers more.
+      first tool covers more lines in that file; negative means the second tool covers more.
     </div>
     <div class="card">
       <table id="filediff-table">
@@ -422,7 +422,7 @@
     document.getElementById('summary-th-a').textContent = toolA.shortLabel;
     document.getElementById('summary-th-b').textContent = toolB.shortLabel;
     document.getElementById('summary-th-delta').textContent =
-      `Delta (${toolB.shortLabel} − ${toolA.shortLabel})`;
+      `Delta (${toolA.shortLabel} − ${toolB.shortLabel})`;
 
     // Summary table body
     const summaryBody = document.querySelector('#summary-table tbody');
@@ -433,12 +433,13 @@
       ['Method rate', 'methodRate'],
     ].forEach(([label, key]) => {
       const av = toolA.data[key], bv = toolB.data[key];
+      // Show delta as (toolA - toolB) so it reads "first tool − second tool"
       summaryBody.insertAdjacentHTML('beforeend', `
         <tr>
           <td>${label}</td>
           <td class="${toolA.colClass}">${pct(av)}</td>
           <td class="${toolB.colClass}">${pct(bv)}</td>
-          <td>${deltaPill(bv - av, av, bv)}</td>
+          <td>${deltaPill(av - bv, av, bv)}</td>
         </tr>`);
     });
 
@@ -469,7 +470,8 @@
           : `${f.mteccLinesCovered}/${f.mteccLinesValid}`;
         const aRate    = toolA.key === 'coverlet' ? f.coverletLineRate : f.mteccLineRate;
         const bRate    = toolB.key === 'coverlet' ? f.coverletLineRate : f.mteccLineRate;
-        const delta    = bRate - aRate;
+        // File diffs store delta as (toolA - toolB) for consistency with the summary
+        const delta    = aRate - bRate;
         const shortName = f.fileName.replace(/^src\/Humanizer\//i, '');
         fileDiffBody.insertAdjacentHTML('beforeend', `
           <tr>
@@ -485,8 +487,8 @@
   }
 
   // Toggle button
-  document.getElementById('toggle-btn').addEventListener('click', () => {
-    [toolA, toolB] = [toolB, toolA];
+    document.getElementById('toggle-btn').addEventListener('click', () => {
+      [toolA, toolB] = [toolB, toolA];
     // Always store which tool is A so the restore condition is unambiguous.
     localStorage.setItem('showdown-perspective', toolA.key);
     render();
@@ -570,14 +572,12 @@ function renderChart(history, toolAParam, toolBParam) {
   const chartH = H - PAD.top  - PAD.bottom;
 
   // Compute per-run delta to plot according to the current perspective.
-  // RunEntry.LineDelta is stored as Coverlet - MTECC. The summary and tables show
-  // (toolB - toolA). We follow that same convention here so the chart aligns
-  // with the toggle: when perspective is Coverlet → MTECC (toolA=coverlet, toolB=mtecc)
-  // we plot (MTECC - Coverlet) which is -LineDelta. When perspective is reversed
-  // we plot LineDelta.
+  // RunEntry.LineDelta is stored as Coverlet - MTECC. We want to plot (toolA - toolB)
+  // so when perspective is Coverlet → MTECC (toolA=coverlet) we plot LineDelta (coverlet - mtecc).
+  // When perspective is reversed we plot -(LineDelta).
   const deltaLine = entries.map(e => {
     const raw = e.lineDelta ?? (e.coverlet && e.mtecc ? (e.coverlet.lineRate - e.mtecc.lineRate) : 0);
-    return toolA.key === 'coverlet' ? -raw : raw;
+    return toolA.key === 'coverlet' ? raw : -raw;
   });
 
   // Expressed as fraction (e.g., 0.01 == 1pp). For chart bounds, include a small padding.
@@ -639,7 +639,7 @@ function renderChart(history, toolAParam, toolBParam) {
   ctx.fillStyle = '#e6edf3';
   ctx.font = '11px sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText(`${toolB.shortLabel} higher → positive`, PAD.left + 20, legendY);
+  ctx.fillText(`${toolA.shortLabel} higher → positive`, PAD.left + 20, legendY);
 
   // Draw zero baseline
   ctx.strokeStyle = '#444c56';

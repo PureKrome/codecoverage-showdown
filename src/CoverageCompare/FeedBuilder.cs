@@ -48,9 +48,9 @@ internal static class FeedBuilder
         var content = $"""
             <table>
               <tr><th></th><th>Coverlet {run.Coverlet.Version}</th><th>MTECC {run.Mtecc.Version}</th><th>Delta</th></tr>
-              <tr><td>Line</td><td>{run.Coverlet.LineRate:P1}</td><td>{run.Mtecc.LineRate:P1}</td><td>{Delta(run.Mtecc.LineRate, run.Coverlet.LineRate)}</td></tr>
-              <tr><td>Branch</td><td>{run.Coverlet.BranchRate:P1}</td><td>{run.Mtecc.BranchRate:P1}</td><td>{Delta(run.Mtecc.BranchRate, run.Coverlet.BranchRate)}</td></tr>
-              <tr><td>Method</td><td>{run.Coverlet.MethodRate:P1}</td><td>{run.Mtecc.MethodRate:P1}</td><td>{Delta(run.Mtecc.MethodRate, run.Coverlet.MethodRate)}</td></tr>
+              <tr><td>Line</td><td>{run.Coverlet.LineRate:P1}</td><td>{run.Mtecc.LineRate:P1}</td><td>{Delta(run.Coverlet.LineRate, run.Mtecc.LineRate)}</td></tr>
+              <tr><td>Branch</td><td>{run.Coverlet.BranchRate:P1}</td><td>{run.Mtecc.BranchRate:P1}</td><td>{Delta(run.Coverlet.BranchRate, run.Mtecc.BranchRate)}</td></tr>
+              <tr><td>Method</td><td>{run.Coverlet.MethodRate:P1}</td><td>{run.Mtecc.MethodRate:P1}</td><td>{Delta(run.Coverlet.MethodRate, run.Mtecc.MethodRate)}</td></tr>
             </table>
             <p>Humanizer commit: {run.HumanizerSha} &bull; <a href="{SiteUrl}">View full report</a></p>
             """;
@@ -63,9 +63,10 @@ internal static class FeedBuilder
             new XElement(Atom + "content", new XAttribute("type", "html"), content));
     }
 
-    private static string Delta(double b, double a)
+    // Delta is expressed as (first - second) in percentage points
+    private static string Delta(double a, double b)
     {
-        var d = (b - a) * 100;
+        var d = (a - b) * 100;
         return d >= 0 ? $"+{d:F2}pp" : $"{d:F2}pp";
     }
 }
