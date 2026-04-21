@@ -42,38 +42,11 @@ jobs:
         run: |
           echo "HUMANIZER_COMMIT=${HUMANIZER_COMMIT:-<not set>}"
           if [ -n "${HUMANIZER_COMMIT}" ]; then
-            echo "Cloning Humanizer and attempting to check out commit ${HUMANIZER_COMMIT}"
-            # When a specific commit is requested, avoid checking out during the shallow clone.
-            # Some shallow clones may not contain the tree objects for unrelated commits and
-            # a checkout can fail with "unable to read tree <sha>". Use --no-checkout so we
-            # can fetch the requested commit (or fall back) before checking out.
-            git clone --no-checkout --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer || true
-            if git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null 2>&1; then
-              git -C humanizer checkout --detach "${HUMANIZER_COMMIT}"
-              echo "Checked out ${HUMANIZER_COMMIT} (present in initial shallow clone)"
-              echo "humanizer_fetch_method=present_in_initial_shallow" >> $GITHUB_OUTPUT
-            else
-              echo "Commit not present in depth=1 clone; trying fetch --depth=50"
-              git -C humanizer fetch --depth=50 origin "${HUMANIZER_COMMIT}" || true
-              if git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null 2>&1; then
-                git -C humanizer checkout --detach "${HUMANIZER_COMMIT}"
-                echo "Checked out ${HUMANIZER_COMMIT} after fetch --depth=50"
-                echo "humanizer_fetch_method=fetch_depth_50" >> $GITHUB_OUTPUT
-              else
-                echo "Still not found; performing full clone as fallback"
-                rm -rf humanizer
-                git clone https://github.com/Humanizr/Humanizer.git humanizer
-                git -C humanizer checkout --detach "${HUMANIZER_COMMIT}" || true
-                echo "Checked out ${HUMANIZER_COMMIT} after full clone fallback"
-                echo "humanizer_fetch_method=full_clone" >> $GITHUB_OUTPUT
-              fi
-            fi
-
-            if ! git -C humanizer rev-parse --verify --quiet "${HUMANIZER_COMMIT}" >/dev/null; then
-              echo "ERROR: Requested HUMANIZER_COMMIT '${HUMANIZER_COMMIT}' was not found in the repository."
-              echo "Ensure the SHA is valid for https://github.com/Humanizr/Humanizer or leave the field empty to use main."
-              exit 1
-            fi
+            echo "HUMANIZER_COMMIT provided; performing a full clone and checking out ${HUMANIZER_COMMIT}"
+            rm -rf humanizer
+            git clone https://github.com/Humanizr/Humanizer.git humanizer
+            git -C humanizer checkout --detach "${HUMANIZER_COMMIT}" || true
+            echo "humanizer_fetch_method=full_clone" >> $GITHUB_OUTPUT
           else
             echo "No HUMANIZER_COMMIT provided - cloning main (shallow)"
             git clone --depth=1 --branch main https://github.com/Humanizr/Humanizer.git humanizer
