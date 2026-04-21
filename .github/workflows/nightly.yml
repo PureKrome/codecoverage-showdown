@@ -160,7 +160,7 @@ jobs:
           fi
 
       - name: Upload Coverlet result
-        uses: actions/upload-artifact@v8
+        uses: actions/upload-artifact@v7
         with:
           name: coverlet-result
           path: results/coverlet.cobertura.xml
@@ -226,7 +226,7 @@ jobs:
           fi
 
       - name: Upload MTECC result
-        uses: actions/upload-artifact@v8
+        uses: actions/upload-artifact@v7
         with:
           name: mtecc-result
           path: results/mtecc.cobertura.xml
