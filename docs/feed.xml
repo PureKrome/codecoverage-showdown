@@ -5,10 +5,23 @@
   <subtitle>Nightly .NET code coverage comparison against Humanizer</subtitle>
   <link rel="alternate" href="https://purekrome.github.io/codecoverage-showdown" />
   <link rel="self" href="https://purekrome.github.io/codecoverage-showdown/feed.xml" />
-  <updated>2026-04-21T14:09:56.4045383Z</updated>
+  <updated>2026-04-22T03:14:58.1542757Z</updated>
   <author>
     <name>Coverage Showdown</name>
   </author>
+  <entry>
+    <id>https://purekrome.github.io/codecoverage-showdown#2026-04-22T03:14:58.1542757Z</id>
+    <title>coverlet 10.0.0 / MTECC 18.6.2 — Humanizer f3d30ee4</title>
+    <updated>2026-04-22T03:14:58.1542757Z</updated>
+    <link href="https://purekrome.github.io/codecoverage-showdown" />
+    <content type="html">&lt;table&gt;
+  &lt;tr&gt;&lt;th&gt;&lt;/th&gt;&lt;th&gt;Coverlet 10.0.0&lt;/th&gt;&lt;th&gt;MTECC 18.6.2&lt;/th&gt;&lt;th&gt;Delta&lt;/th&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Line&lt;/td&gt;&lt;td&gt;90.5 %&lt;/td&gt;&lt;td&gt;91.0 %&lt;/td&gt;&lt;td&gt;-0.47pp&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Branch&lt;/td&gt;&lt;td&gt;83.4 %&lt;/td&gt;&lt;td&gt;85.7 %&lt;/td&gt;&lt;td&gt;-2.26pp&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Method&lt;/td&gt;&lt;td&gt;66.3 %&lt;/td&gt;&lt;td&gt;71.2 %&lt;/td&gt;&lt;td&gt;-4.84pp&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+&lt;p&gt;Humanizer commit: f3d30ee4 &amp;bull; &lt;a href="https://purekrome.github.io/codecoverage-showdown"&gt;View full report&lt;/a&gt;&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://purekrome.github.io/codecoverage-showdown#2026-04-21T14:09:56.4045383Z</id>
     <title>coverlet  / MTECC  — Humanizer f3d30ee4</title>
