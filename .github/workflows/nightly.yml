@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: Checkout showdown repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -107,7 +107,7 @@ jobs:
 
     steps:
       - name: Checkout showdown repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Clone Humanizer (main)
         run: |
@@ -174,7 +174,7 @@ jobs:
 
     steps:
       - name: Checkout showdown repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Clone Humanizer (main)
         run: |
@@ -240,7 +240,7 @@ jobs:
 
     steps:
       - name: Checkout showdown repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
