@@ -124,7 +124,7 @@ jobs:
           fi
 
       - name: Setup .NET (from humanizer/global.json)
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: humanizer/global.json
           include-prerelease: true
@@ -191,7 +191,7 @@ jobs:
           fi
 
       - name: Setup .NET (from humanizer/global.json)
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: humanizer/global.json
           include-prerelease: true
@@ -245,7 +245,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup .NET (from repo global.json)
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
           include-prerelease: true
