@@ -1,11 +1,11 @@
 {
   "latest": {
-    "runAt": "2026-09-12T07:02:35.3442554Z",
+    "runAt": "2026-09-28T08:29:17.7535499Z",
     "humanizerSha": "f3d30ee4",
     "coverlet": {
-      "version": "10.0.1",
+      "version": "",
       "lineRate": 0.9052,
-      "branchRate": 0.8311,
+      "branchRate": 0.8649,
       "methodRate": 0.6632789395293419
     },
     "mtecc": {
@@ -15,14 +15,14 @@
       "methodRate": 0.7117284125379167
     },
     "lineDelta": -0.0047,
-    "branchDelta": -0.0257,
+    "branchDelta": 0.0081,
     "methodDelta": -0.0484
   },
   "packageComparisons": [
     {
       "name": "Humanizer",
       "coverletLine": 0.9052,
-      "coverletBranch": 0.8311,
+      "coverletBranch": 0.8649,
       "mteccLine": 0.9099,
       "mteccBranch": 0.8568
     }
