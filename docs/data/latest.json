@@ -1,9 +1,9 @@
 {
   "latest": {
-    "runAt": "2026-09-28T08:29:17.7535499Z",
+    "runAt": "2026-09-29T08:10:17.6845970Z",
     "humanizerSha": "f3d30ee4",
     "coverlet": {
-      "version": "",
+      "version": "10.1.0",
       "lineRate": 0.9052,
       "branchRate": 0.8649,
       "methodRate": 0.6632789395293419
